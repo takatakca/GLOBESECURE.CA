@@ -1,0 +1,9 @@
+# Décisions confirmées — GlobeSecure
+
+- **2026-10-14 — Source de contenu.** Le site public `https://globesecure.ca` contient les informations officielles à transférer dans le dépôt. Ne pas puiser dans des entreprises homonymes. Les mentions de licences, assurances et délais sont des déclarations du site d'origine, pas des certifications indépendamment vérifiées.
+- **2026-10-14 — Branche de publication.** `takatakca/GLOBESECURE.CA`, branche `main`, publication directe autorisée avec vérification du SHA ; pas de force-push.
+- **2026-10-14 — Production protégée.** L'ancienne application Node/Next sur MochaHost peut contenir du code différent. Ne rien effacer ni remplacer avant sauvegarde, inventaire des dépendances, vérification des domaines et retour arrière.
+- **2026-10-14 — Architecture.** GlobeSecure demeure une application indépendante. TAKATAK Auth gère l'identité centrale ; accès par entitlement explicite, rôle et tenant. Aucun client ne consulte ceux des autres.
+- **2026-10-14 — Géolocalisation.** Consentement explicite ; capture seulement pendant un quart actif ; STOP ou retrait du consentement bloque la remontée côté serveur. Durées de conservation et information légale à valider avant activation réelle.
+- **2026-10-14 — Publication.** Compilation hors de MochaHost ; déploiement staging isolé et conditionné par variables GitHub. Aucune mise en production affirmée en l'absence de preuve.
+- **2026-10-14 — Vérification.** Tests unitaires + production build + smoke HTTP CI requis. Tests de données réelles et sécurité avant bascule.
