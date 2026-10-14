@@ -1,0 +1,58 @@
+name: GlobeSecure Import Public Content & Media
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/sync-public-assets.mjs'
+      - '.github/workflows/site-assets.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: globesecure-public-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read canonical live website
+        run: node scripts/inventory-site.mjs
+      - name: Download public images from canonical domain
+        run: node scripts/sync-public-assets.mjs
+      - name: Store canonical public content inventory
+        run: |
+          mkdir -p content/live-site
+          cp audit/live-site/inventory.json content/live-site/inventory.json
+      - name: Commit canonical public content and owned images
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- content/live-site/inventory.json public/original-site/
+          if git diff --cached --quiet; then
+            echo "No changes to canonical site content."
+            exit 0
+          fi
+          git commit -m "content: import public globesecure.ca home and image assets"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Preserve source import report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: globesecure-import-report
+          path: |
+            audit/live-site/*.json
+          retention-days: 7
