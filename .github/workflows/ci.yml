@@ -1,0 +1,43 @@
+name: GlobeSecure CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Unit tests
+        run: npm run test
+      - name: Next.js production build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_SITE_URL: https://globesecure.ca
+        run: npm run build
+      - name: Assemble standalone artifact
+        run: |
+          mkdir -p .next/standalone/.next
+          cp -R .next/static .next/standalone/.next/
+          if [ -d public ]; then cp -R public .next/standalone/; fi
+          test -f .next/standalone/server.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: globesecure-standalone
+          path: .next/standalone/
+          include-hidden-files: true
+          retention-days: 7
