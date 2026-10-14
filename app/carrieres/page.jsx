@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { SiteHeader, SiteFooter } from "../page";
+export const metadata = { title: "Carrières" };
+export default function CareersPage() {
+  return <><SiteHeader /><main id="contenu"><section className="inner-hero"><div className="container"><Link href="/" className="back-link">← Accueil</Link><span className="section-kicker">GLOBESECURE / CARRIÈRES</span><h1>La sécurité vous tient à cœur ? <em>Rejoignez notre équipe.</em></h1><p>Globe Secure valorise la discipline, le professionnalisme et l'engagement envers la sécurité. Nous sommes toujours heureux de découvrir des personnes partageant ces valeurs.</p></div></section><section className="section"><div className="container"><span className="section-kicker">FAITES PARTIE DE GLOBESECURE</span><h2>Des personnes engagées.<br /><em>Une mission essentielle.</em></h2><p className="muted">La page d'accueil historique invite les candidats à transmettre leur CV. La réception sécurisée des candidatures n'est pas encore configurée dans cette nouvelle application, et aucun CV n'est collecté ici pour le moment.</p><Link className="button button-outline" href="/contact">Coordonnées et contact ↗</Link></div></section></main><SiteFooter /></>;
+}
