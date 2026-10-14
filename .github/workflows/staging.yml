@@ -31,9 +31,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - name: Install, verify and build off server
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm test
           GLOBESECURE_BUILD_SHA="$DEPLOY_SHA" NEXT_PUBLIC_SITE_URL="$STAGING_URL" npm run build
           mkdir -p .next/standalone/.next

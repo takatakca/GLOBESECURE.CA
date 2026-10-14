@@ -1,6 +1,6 @@
 # Déploiement GlobeSecure / MochaHost
 
-La génération Next.js se fait sur un runner GitHub Actions (Node 22), **jamais sur le terminal cPanel**. L'application utilise `output: "standalone"`.
+La génération Next.js se fait sur un runner GitHub Actions (Node 22), **jamais sur le terminal cPanel**. Les dépendances sont figées par `package-lock.json` et installées via `npm ci` en CI comme en staging. L'application utilise `output: "standalone"`.
 
 ## Protection de la production existante
 
@@ -33,3 +33,7 @@ En l'absence de ces dernières variables, l'API contact renvoie HTTP 503, sans p
 Variables GitHub nécessaires au staging : secrets `GLOBESECURE_STAGING_HOST`, `GLOBESECURE_STAGING_SSH_PORT`, `GLOBESECURE_STAGING_USER`, `GLOBESECURE_STAGING_SSH_PRIVATE_KEY`, `GLOBESECURE_STAGING_KNOWN_HOSTS`, vars `GLOBESECURE_STAGING_APP_ROOT`, `GLOBESECURE_STAGING_URL`, et `GLOBESECURE_STAGING_ENABLED`. Provisionner l'application Node (startup `server.js`) et variables dans cPanel avant activation.
 
 **État actuel : pas de déploiement de production affirmé ni déclenché.**
+
+## Vérifier la version réellement déployée
+
+Le build intègre le SHA Git dans `GET /api/health` (champ `release`). La CI vérifie cette valeur sur son serveur HTTP autonome, puis le workflow staging compare le SHA obtenu via l'URL publique de staging à `DEPLOY_SHA`. Un décalage fait échouer le pipeline, **même si l'endpoint renvoie 200**. Cela ne prouve pas une production saine : les dépendances et secrets réels doivent aussi être validés avant une bascule.
