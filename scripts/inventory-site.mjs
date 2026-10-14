@@ -34,16 +34,18 @@ export function extractPublicPage(html,url) {
   const headings=[...html.matchAll(/<h([1-4])\b[^>]*>([\s\S]*?)<\/h\1>/gi)].slice(0,100).map(m=>({level:Number(m[1]),text:plain(m[2]).replace(/\s+/g," ").slice(0,300)}));
   const internalLinks=[...new Set([...html.matchAll(/<a\s[^>]*href\s*=\s*["']([^"']+)["']/gi)].map(m=>normalizedUrl(decode(m[1]),url)).filter(Boolean))];
   const assets=[...new Set([...html.matchAll(/<(?:img|source)\s[^>]*(?:src|srcset)\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1].split(",")[0].trim().split(/\s+/)[0]).filter(x=>x.length<800).slice(0,100))];
-  const contacts=[...html.matchAll(/href\\s*=\\s*["']((?:tel:|mailto:)[^"'\\s<>]+)["']/gi)]
+  const contacts=[...html.matchAll(/href\s*=\s*["']((?:tel:|mailto:)[^"'\s<>]+)["']/gi)]
     .map(m=>m[1].trim()).filter(x=>x.length<250);
-  const externalLinks=[...new Set([...html.matchAll(/<a\\s[^>]*href\\s*=\\s*["'](https?:\\/\\/[^"']+)["']/gi)]
-    .map(m=>m[1]).filter(x=>{try{return !HOSTS.has(new URL(x).hostname.toLowerCase())}catch{return false}}).slice(0,50))];
-  const forms=[...html.matchAll(/<form\\b([^>]*)>([\\s\\S]*?)<\\/form>/gi)].slice(0,15).map(m=>{
-    const action=/action\\s*=\\s*["']([^"']{1,300})["']/i.exec(m[1])?.[1]||"";
-    const method=/method\\s*=\\s*["']([^"']{1,20})["']/i.exec(m[1])?.[1]||"get";
-    const fields=[...m[2].matchAll(/<(?:input|select|textarea)\\b([^>]*)>/gi)].slice(0,60).map(f=>({
-      name:/name\\s*=\\s*["']([^"']{1,100})["']/i.exec(f[1])?.[1]||"",
-      type:/type\\s*=\\s*["']([^"']{1,60})["']/i.exec(f[1])?.[1]||"text"
+  const outbound=[...html.matchAll(/<a\s[^>]*href\s*=\s*["'](https?:\/\/[^"']+)["']/gi)].map(m=>m[1]);
+  const externalLinks=[...new Set(outbound.filter(x=>{
+    try{return !HOSTS.has(new URL(x).hostname.toLowerCase())}catch{return false}
+  }).slice(0,50))];
+  const forms=[...html.matchAll(/<form\b([^>]*)>([\s\S]*?)<\/form>/gi)].slice(0,15).map(m=>{
+    const action=/action\s*=\s*["']([^"']{1,300})["']/i.exec(m[1])?.[1]||"";
+    const method=/method\s*=\s*["']([^"']{1,20})["']/i.exec(m[1])?.[1]||"get";
+    const fields=[...m[2].matchAll(/<(?:input|select|textarea)\b([^>]*)>/gi)].slice(0,60).map(f=>({
+      name:/name\s*=\s*["']([^"']{1,100})["']/i.exec(f[1])?.[1]||"",
+      type:/type\s*=\s*["']([^"']{1,60})["']/i.exec(f[1])?.[1]||"text"
     })).filter(f=>f.name);
     return {action,method:method.toUpperCase(),fields};
   });
