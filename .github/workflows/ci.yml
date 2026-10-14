@@ -28,6 +28,12 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: https://globesecure.ca
         run: npm run build
+      - name: Assemble standalone artifact
+        run: |
+          mkdir -p .next/standalone/.next
+          cp -R .next/static .next/standalone/.next/
+          if [ -d public ]; then cp -R public .next/standalone/; fi
+          test -f .next/standalone/server.js
       - name: Smoke-test the built HTTP service
         run: |
           PORT=3077 HOSTNAME=127.0.0.1 node .next/standalone/server.js &
@@ -39,12 +45,6 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3077/ > /dev/null
           curl -fsS http://127.0.0.1:3077/services/evenementiel > /dev/null
-      - name: Assemble standalone artifact
-        run: |
-          mkdir -p .next/standalone/.next
-          cp -R .next/static .next/standalone/.next/
-          if [ -d public ]; then cp -R public .next/standalone/; fi
-          test -f .next/standalone/server.js
       - uses: actions/upload-artifact@v4
         with:
           name: globesecure-standalone

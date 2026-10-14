@@ -23,6 +23,7 @@ jobs:
       SSH_KNOWN_HOSTS: ${{ secrets.GLOBESECURE_STAGING_KNOWN_HOSTS }}
       APP_ROOT: ${{ vars.GLOBESECURE_STAGING_APP_ROOT }}
       STAGING_URL: ${{ vars.GLOBESECURE_STAGING_URL }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,7 +44,8 @@ jobs:
         run: |
           set -eu
           test -n "$HOST" && test -n "$SSH_PORT" && test -n "$SSH_USER"
-          test -n "$SSH_KEY" && test -n "$SSH_KNOWN_HOSTS"
+          test -n "$SSH_KEY" && test -n "$SSH_KNOWN_HOSTS" && test -n "$STAGING_URL"
+          echo "$STAGING_URL" | grep -Eq '^https://'
           echo "$APP_ROOT" | grep -Eq '^/home/[A-Za-z0-9_]+/apps/globesecure-staging$'
       - name: Configure known host and deploy release
         shell: bash
@@ -53,7 +55,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
-          RELEASE="$APP_ROOT/releases/$GITHUB_SHA"
+          RELEASE="$APP_ROOT/releases/$DEPLOY_SHA"
           TARGET="$SSH_USER@$HOST"
           ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$TARGET" "mkdir -p '$RELEASE'"
           rsync -az --protect-args -e "ssh -i $HOME/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p $SSH_PORT" .next/standalone/ "$TARGET:$RELEASE/"

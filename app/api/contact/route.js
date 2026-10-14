@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateContact } from "../../../lib/contact.mjs";
+import { requestIsSameSite } from "../../../lib/origin.mjs";
 export const runtime = "nodejs";
 const visits = new Map();
 function limit(ip) {
@@ -11,14 +12,7 @@ function limit(ip) {
   return entry.count > 5;
 }
 export async function POST(request) {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("host");
-  if (!origin || !host) return NextResponse.json({ error: "Origine requise." }, { status: 403 });
-  try {
-    if (new URL(origin).host !== host) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
-  } catch {
-    return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
-  }
+  if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (limit(ip)) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });
   if (Number(request.headers.get("content-length")) > 12000) return NextResponse.json({ error: "Demande trop volumineuse." }, { status: 413 });
