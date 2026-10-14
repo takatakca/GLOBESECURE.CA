@@ -7,7 +7,7 @@ export async function GET() {
   const ctx = await agentContext();
   if (ctx.error) return ctx.error;
   try {
-    const result = await ctx.pool.query("SELECT id, started_at FROM gs_shifts WHERE tenant_id = $1 AND agent_sub = $2 AND stopped_at IS NULL LIMIT 1", [ctx.session.tenant, ctx.session.sub]);
+    const result = await ctx.pool.query("SELECT id, started_at, (tracking_revoked_at IS NULL) AS consent_active FROM gs_shifts WHERE tenant_id = $1 AND agent_sub = $2 AND stopped_at IS NULL LIMIT 1", [ctx.session.tenant, ctx.session.sub]);
     return NextResponse.json({ active: result.rows[0] || null, consentVersion: CONSENT_VERSION }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) { return apiError(e); }
 }

@@ -15,7 +15,7 @@ export async function POST(request) {
   try {
     await client.query("BEGIN");
     const active = await client.query(
-      "SELECT id FROM gs_shifts WHERE tenant_id = $1 AND agent_sub = $2 AND stopped_at IS NULL AND consented_at IS NOT NULL FOR UPDATE",
+      "SELECT id FROM gs_shifts WHERE tenant_id = $1 AND agent_sub = $2 AND stopped_at IS NULL AND consented_at IS NOT NULL AND tracking_revoked_at IS NULL FOR UPDATE",
       [ctx.session.tenant, ctx.session.sub]);
     if (!active.rows.length) {
       await client.query("ROLLBACK");

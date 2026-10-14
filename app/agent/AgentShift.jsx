@@ -51,25 +51,37 @@ export default function AgentShift() {
     try {
       const loc = await locate();
       const result = await post("/api/agent/shifts", { action: "start", consent: true, consentVersion, position: loc });
-      setActive(result.shift); lastSent.current = Date.now(); setTracking(true);
+      setActive({ ...result.shift, consent_active: true }); lastSent.current = Date.now(); setTracking(true);
       setMessage("Quart commencé. La localisation peut être transmise pendant ce quart.");
     } catch (err) { setMessage(err.message); }
     finally { setBusy(false); }
   }
+  async function changeConsent(value) {
+    if (!value) setTracking(false);
+    setConsent(value);
+    if (!active) return;
+    try {
+      await post("/api/agent/consent", { action: value ? "grant" : "revoke", consent: value, consentVersion });
+      setActive({ ...active, consent_active: value });
+      setMessage(value ? "Consentement réactivé. Vous pouvez reprendre la localisation." : "Consentement retiré : le serveur n'accepte plus de nouveaux points.");
+    } catch (err) {
+      setTracking(false);
+      setConsent(false);
+      setMessage("Impossible de modifier le consentement : " + err.message + ". Terminez le quart pour assurer l'arrêt.");
+    }
+  }
   async function stop() {
     if (busy) return;
     setBusy(true); setMessage(""); setTracking(false);
-    let loc;
-    try { loc = await locate(); } catch { loc = null; }
     try {
-      await post("/api/agent/shifts", { action: "stop", position: loc });
+      await post("/api/agent/shifts", { action: "stop" });
       setActive(null); setConsent(false); setMessage("Quart terminé. Le suivi de position est arrêté.");
     } catch (err) { setMessage(err.message); }
     finally { setBusy(false); }
   }
   return <div className="shift-card"><div className="shift-top"><span>POINTAGE AGENT</span><strong className={active ? "status-active" : "status-idle"}>{loading ? "CHARGEMENT" : active ? "QUART ACTIF" : "HORS QUART"}</strong></div>
-    {active ? <><h3>Quart en cours</h3><p>Début : {new Date(active.started_at).toLocaleString("fr-CA")}</p><p className="muted">Localisation dans cet onglet : <strong>{tracking ? "active" : "suspendue"}</strong></p><div className="shift-buttons">{!tracking && <button type="button" className="button button-outline" disabled={busy || !consent} onClick={() => { if (consent) { lastSent.current = 0; setTracking(true); setMessage("Suivi réactivé pour ce quart."); } }}>Reprendre le suivi</button>}<button type="button" className="button button-primary" disabled={busy} onClick={stop}>{busy ? "Traitement…" : "Terminer mon quart — STOP"}</button></div></> : <><h3>Prêt à commencer ?</h3><p className="muted">Votre position sera capturée au début du quart et pourra être actualisée périodiquement pendant que cet onglet est ouvert. Aucun point ne doit être enregistré hors quart.</p><button type="button" className="button button-primary" disabled={loading || busy || !consent} onClick={start}>{busy ? "Traitement…" : "Commencer mon quart — START"}</button></>}
-    <label className="shift-consent"><input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); if (!e.target.checked) setTracking(false); }} /><span>J'autorise explicitement la collecte de ma localisation pendant ce quart aux fins de coordination et de pointage. Je peux terminer mon quart pour arrêter ce suivi. *</span></label>
+    {active ? <><h3>Quart en cours</h3><p>Début : {new Date(active.started_at).toLocaleString("fr-CA")}</p><p className="muted">Localisation dans cet onglet : <strong>{tracking ? "active" : "suspendue"}</strong></p><div className="shift-buttons">{!tracking && <button type="button" className="button button-outline" disabled={busy || !consent || !active?.consent_active} onClick={() => { if (consent && active?.consent_active) { lastSent.current = 0; setTracking(true); setMessage("Suivi réactivé pour ce quart."); } }}>Reprendre le suivi</button>}<button type="button" className="button button-primary" disabled={busy} onClick={stop}>{busy ? "Traitement…" : "Terminer mon quart — STOP"}</button></div></> : <><h3>Prêt à commencer ?</h3><p className="muted">Votre position sera capturée au début du quart et pourra être actualisée périodiquement pendant que cet onglet est ouvert. Aucun point ne doit être enregistré hors quart.</p><button type="button" className="button button-primary" disabled={loading || busy || !consent} onClick={start}>{busy ? "Traitement…" : "Commencer mon quart — START"}</button></>}
+    <label className="shift-consent"><input type="checkbox" checked={consent} onChange={(e) => changeConsent(e.target.checked)} /><span>J'autorise explicitement la collecte de ma localisation pendant ce quart aux fins de coordination et de pointage. Je peux terminer mon quart pour arrêter ce suivi. *</span></label>
     <p className="shift-disclaimer">La localisation est utilisée uniquement dans le cadre de votre quart actif. La conservation, les accès et la politique d'entreprise doivent être approuvés avant le lancement opérationnel.</p>
     {message && <p role="status" className="shift-message">{message}</p>}{active && <IncidentForm />}
   </div>;
