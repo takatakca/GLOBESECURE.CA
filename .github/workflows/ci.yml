@@ -47,6 +47,7 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3077/ > /dev/null
           curl -fsS http://127.0.0.1:3077/services/evenementiel > /dev/null
+          EXPECTED_SHA="$GITHUB_SHA" node scripts/smoke-http.mjs
           curl -fsS http://127.0.0.1:3077/api/health | node -e 'const wanted=process.env.GITHUB_SHA; let json="";process.stdin.on("data",x=>json+=x).on("end",()=>{if(JSON.parse(json).release!==wanted){console.error("Build SHA does not match",wanted);process.exit(1)}})'
       - uses: actions/upload-artifact@v4
         with:
