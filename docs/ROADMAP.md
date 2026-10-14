@@ -18,7 +18,7 @@ Le dépôt initial `takatakca/GLOBESECURE.CA` sur `main` ne contenait que `READM
 | Implémenté, configuration requise | TAKATAK Auth OIDC/OAuth PKCE, sessions signées, isolation par entitlement et tenant |
 | Implémentation initiale, base à configurer | PostgreSQL : schéma des quarts, positions, consentement et audit; PostGIS à ajouter pour supervision |
 | Implémenté, non activé en production | Espace agent : START/STOP, consentement explicite, suivi du navigateur limité au quart, journal d'audit |
-| À réaliser | Espace client : mandats et rapports limités au client autorisé |
+| Partiel en code, à raccorder | Espace client : rapports explicitement revus et publiés, filtrés par tenant ; gestion complète des mandats à faire |
 | Partiel en code, à raccorder | Supervision tenant-scopée des quarts actifs, derniers points, incidents; cartes et affectations restent à faire |
 | Partiel en code | Incidents texte, horodatage et audit; pièces jointes, processus d'approbation et données personnelles sensibles non livrés |
 | À réaliser | Ronds de garde QR/NFC, certifications, horaires, feuilles de temps et export paie |
