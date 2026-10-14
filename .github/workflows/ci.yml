@@ -21,6 +21,12 @@ jobs:
           node-version: '22'
       - name: Install declared dependencies
         run: npm install --no-audit --no-fund
+      - name: Preserve dependency lock for reproducibility
+        uses: actions/upload-artifact@v4
+        with:
+          name: globesecure-lock-candidate
+          path: package-lock.json
+          retention-days: 7
       - name: Unit tests
         run: npm run test
       - name: Next.js production build
