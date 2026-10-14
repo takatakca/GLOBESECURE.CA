@@ -22,7 +22,7 @@ const denied = ["/api/agent/shifts", "/api/client/reports", "/api/supervision/ac
 for (const route of denied) await fetchChecked(route, 403);
 await fetchChecked("/api/auth/login", 503);
 for (const route of ["/api/contact", "/api/careers"]) {
-  await fetchChecked(route, 503, { method: "POST", headers: { origin: base, "Content-Type": "application/json" }, body: "{}" });
+  await fetchChecked(route, 503, { method: "POST", headers: { origin: process.env.CANONICAL_ORIGIN || "https://globesecure.ca", "Content-Type": "application/json" }, body: "{}" });
 }
 const robots = await (await fetchChecked("/robots.txt")).text();
 assert.match(robots, /Disallow: \/agent/);
