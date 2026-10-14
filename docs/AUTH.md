@@ -51,3 +51,13 @@ Le superviseur ne voit que les quarts et incidents de son propre `tenant_id`. La
 - Vérifier information, nécessité, proportionnalité, consentement approprié et obligations locales applicables.
 - Programmer la purge, auditer les requêtes par rôle, prévoir sauvegarde chiffrée, rotation et révocation des secrets.
 - Faire des tests d'intégration avec un fournisseur OIDC réel, PostgreSQL et appareils réels.
+
+## Purge des positions après approbation
+
+Aucune purge n'est activée automatiquement. Une fois la durée de conservation approuvée, exécuter dans un cron **serveur** quotidien :
+
+```sh
+GLOBESECURE_PRUNE_ENABLED=true GLOBESECURE_POSITION_RETENTION_DAYS=30 npm run db:prune
+```
+
+Adapter les 30 jours à la politique validée. Le script refuse les valeurs manquantes et traite au plus 100 000 positions par exécution. Les journaux d'audit et feuilles de temps sont conservés séparément suivant la politique applicable.
