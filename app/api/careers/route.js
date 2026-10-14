@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { readJsonBody, bodyFailure } from "../../../lib/read-json.mjs";
 import { requestIsSameSite } from "../../../lib/origin.mjs";
 import { validateCareer } from "../../../lib/careers.mjs";
+import { requestThrottle } from "../../../lib/rate-limit.mjs";
 export const runtime = "nodejs";
 export async function POST(request) {
   if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   if (process.env.PRIVACY_POLICY_APPROVED !== "true") return NextResponse.json({ error: "Réception des candidatures non activée." }, { status: 503 });
   if (!process.env.RESEND_API_KEY || !process.env.CAREERS_TO_EMAIL || !process.env.CONTACT_FROM_EMAIL) return NextResponse.json({ error: "Le service de candidature n'est pas encore disponible." }, { status: 503 });
+  if (requestThrottle(request, "careers")) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });
   let body;
   try { body = await readJsonBody(request); } catch (error) {
     const failure = bodyFailure(error);

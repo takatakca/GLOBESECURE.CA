@@ -2,21 +2,12 @@ import { NextResponse } from "next/server";
 import { readJsonBody, bodyFailure } from "../../../lib/read-json.mjs";
 import { validateContact } from "../../../lib/contact.mjs";
 import { requestIsSameSite } from "../../../lib/origin.mjs";
+import { requestThrottle } from "../../../lib/rate-limit.mjs";
 export const runtime = "nodejs";
-const visits = new Map();
-function limit(ip) {
-  const now = Date.now();
-  if (visits.size > 5000) for (const [key, val] of visits) if (now - val.start > 600000) visits.delete(key);
-  const entry = visits.get(ip);
-  if (!entry || now - entry.start > 600000) { visits.set(ip, { start: now, count: 1 }); return false; }
-  entry.count += 1;
-  return entry.count > 5;
-}
 export async function POST(request) {
   if (process.env.PRIVACY_POLICY_APPROVED !== "true") return NextResponse.json({ error: "Réception des soumissions non activée." }, { status: 503 });
   if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
-  const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (limit(ip)) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });
+  if (requestThrottle(request, "quote")) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });
   let body;
   try { body = await readJsonBody(request); } catch (error) { const failure = bodyFailure(error); return NextResponse.json({ error: failure.message }, { status: failure.status }); }
   const validation = validateContact(body);
