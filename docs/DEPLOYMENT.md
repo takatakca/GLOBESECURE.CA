@@ -21,7 +21,7 @@ En l'absence de ces dernières variables, l'API contact renvoie HTTP 503, sans p
 
 ## CI et publication
 
-`.github/workflows/ci.yml` exécute les tests et la compilation sur chaque push/PR. Elle n'a **pas** d'étape de transfert de fichiers vers MochaHost : la présence du précédent site exige un inventaire et une reprise de code avant d'activer le CD. Pour publier un build en respectant cPanel :
+`.github/workflows/ci.yml` exécute les tests et la compilation sur chaque push/PR. Le workflow `.github/workflows/staging.yml` peut transférer une version vers une racine de staging **distincte** uniquement après configuration et activation par la variable `GLOBESECURE_STAGING_ENABLED=true`. Le workflow interdit un chemin différent du motif `/home/<utilisateur>/apps/globesecure-staging` et ne touche pas la production historique. Pour publier un build en respectant cPanel :
 
 - Générer `.next/standalone` sur GitHub Actions ;
 - copier `.next/static` vers `.next/standalone/.next/static` et `public` vers le standalone ;
@@ -29,5 +29,7 @@ En l'absence de ces dernières variables, l'API contact renvoie HTTP 503, sans p
 - démarrer le `server.js` standalone avec Node 22, `PORT` adapté au service Node cPanel et les variables secrètes côté hébergeur ;
 - vérifier `/api/health`, les pages, la réception du formulaire, les logs et le certificat TLS ;
 - activer la bascule de production seulement ensuite.
+
+Variables GitHub nécessaires au staging : secrets `GLOBESECURE_STAGING_HOST`, `GLOBESECURE_STAGING_SSH_PORT`, `GLOBESECURE_STAGING_USER`, `GLOBESECURE_STAGING_SSH_PRIVATE_KEY`, `GLOBESECURE_STAGING_KNOWN_HOSTS`, vars `GLOBESECURE_STAGING_APP_ROOT`, `GLOBESECURE_STAGING_URL`, et `GLOBESECURE_STAGING_ENABLED`. Provisionner l'application Node (startup `server.js`) et variables dans cPanel avant activation.
 
 **État actuel : pas de déploiement de production affirmé ni déclenché.**

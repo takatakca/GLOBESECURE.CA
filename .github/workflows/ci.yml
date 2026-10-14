@@ -28,6 +28,17 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: https://globesecure.ca
         run: npm run build
+      - name: Smoke-test the built HTTP service
+        run: |
+          PORT=3077 HOSTNAME=127.0.0.1 node .next/standalone/server.js &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 25); do
+            if curl -fsS http://127.0.0.1:3077/api/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3077/ > /dev/null
+          curl -fsS http://127.0.0.1:3077/services/evenementiel > /dev/null
       - name: Assemble standalone artifact
         run: |
           mkdir -p .next/standalone/.next

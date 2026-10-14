@@ -8,7 +8,8 @@ Site vitrine et fondation de la plateforme GlobeSecure, agence canadienne de sé
 - Soumission validée côté client et serveur ; envoi via Resend uniquement si les variables sont configurées.
 - Pages confidentialité, portails (état réel), sitemap, robots, endpoint de santé.
 - Tests unitaires de validation, CI GitHub Actions, construction Next.js standalone hors de l'hébergement.
-- **Pas encore livrés** : TAKATAK Auth / OIDC, portails authentifiés, pointage et géolocalisation des quarts, rapports d'incident, base Postgres, configuration des destinataires et déploiement sur MochaHost.
+- **Implémentés, non activés** : connexion TAKATAK Auth / OIDC, agent START/STOP, positions en quart avec retrait de consentement, incidents, supervision tenant-scopée et schéma PostgreSQL.
+- **À raccorder et valider** : secrets OIDC, PostgreSQL, politique de rétention, messagerie, espace client complet et déploiement cPanel.
 
 ## Développement
 
@@ -25,7 +26,7 @@ Ouvrir http://localhost:3000 et http://localhost:3000/api/health.
 
 ## Hébergement
 
-Ancienne cible identifiée : `/home/bolonca/apps/globesecure` sur MochaHost. Vérifier la racine réelle de l'application cPanel et l'état de la production avant toute copie. Voir [Déploiement](docs/DEPLOYMENT.md) et [Feuille de route](docs/ROADMAP.md).
+Ancienne cible identifiée : `/home/bolonca/apps/globesecure` sur MochaHost. Vérifier la racine réelle de l'application cPanel et l'état de la production avant toute copie. Voir [Déploiement](docs/DEPLOYMENT.md), [Auth](docs/AUTH.md), [Feuille de route](docs/ROADMAP.md) et [Relève](docs/RELEVE.md).
 
 ## Sécurité
 

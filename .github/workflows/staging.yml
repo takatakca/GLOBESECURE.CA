@@ -1,0 +1,63 @@
+name: GlobeSecure Staging Deploy
+
+on:
+  workflow_run:
+    workflows: ["GlobeSecure CI"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    if: ${{ vars.GLOBESECURE_STAGING_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'push')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: globesecure-staging
+    env:
+      HOST: ${{ secrets.GLOBESECURE_STAGING_HOST }}
+      SSH_PORT: ${{ secrets.GLOBESECURE_STAGING_SSH_PORT }}
+      SSH_USER: ${{ secrets.GLOBESECURE_STAGING_USER }}
+      SSH_KEY: ${{ secrets.GLOBESECURE_STAGING_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.GLOBESECURE_STAGING_KNOWN_HOSTS }}
+      APP_ROOT: ${{ vars.GLOBESECURE_STAGING_APP_ROOT }}
+      STAGING_URL: ${{ vars.GLOBESECURE_STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install, verify and build off server
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          NEXT_PUBLIC_SITE_URL="${STAGING_URL:-https://globesecure.ca}" npm run build
+          mkdir -p .next/standalone/.next
+          cp -R .next/static .next/standalone/.next/
+          if [ -d public ]; then cp -R public .next/standalone/; fi
+          test -f .next/standalone/server.js
+      - name: Validate staging-only destination
+        run: |
+          set -eu
+          test -n "$HOST" && test -n "$SSH_PORT" && test -n "$SSH_USER"
+          test -n "$SSH_KEY" && test -n "$SSH_KNOWN_HOSTS"
+          echo "$APP_ROOT" | grep -Eq '^/home/[A-Za-z0-9_]+/apps/globesecure-staging$'
+      - name: Configure known host and deploy release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          RELEASE="$APP_ROOT/releases/$GITHUB_SHA"
+          TARGET="$SSH_USER@$HOST"
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$TARGET" "mkdir -p '$RELEASE'"
+          rsync -az --protect-args -e "ssh -i $HOME/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p $SSH_PORT" .next/standalone/ "$TARGET:$RELEASE/"
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$TARGET" "ln -sfn '$RELEASE' '$APP_ROOT/current' && mkdir -p '$RELEASE/tmp' && touch '$RELEASE/tmp/restart.txt'"
+          if [ -n "$STAGING_URL" ]; then
+            curl -fsS --retry 4 --retry-delay 3 --retry-connrefused "$STAGING_URL/api/health"
+          fi

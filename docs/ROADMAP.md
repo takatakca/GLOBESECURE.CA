@@ -19,8 +19,8 @@ Le dépôt initial `takatakca/GLOBESECURE.CA` sur `main` ne contenait que `READM
 | Implémentation initiale, base à configurer | PostgreSQL : schéma des quarts, positions, consentement et audit; PostGIS à ajouter pour supervision |
 | Implémenté, non activé en production | Espace agent : START/STOP, consentement explicite, suivi du navigateur limité au quart, journal d'audit |
 | À réaliser | Espace client : mandats et rapports limités au client autorisé |
-| À réaliser | Supervision : affectations, tableaux d'opérations, carte géographique à rôles contrôlés |
-| À réaliser | Incidents : pièces jointes sécurisées, horodatage, validation, audit |
+| Partiel en code, à raccorder | Supervision tenant-scopée des quarts actifs, derniers points, incidents; cartes et affectations restent à faire |
+| Partiel en code | Incidents texte, horodatage et audit; pièces jointes, processus d'approbation et données personnelles sensibles non livrés |
 | À réaliser | Ronds de garde QR/NFC, certifications, horaires, feuilles de temps et export paie |
 | À réaliser | Politique complète de confidentialité, propriétaire légal, contact officiel, durées de rétention |
 | À réaliser | Contrôles de sécurité et tests d'intégration/e2e avant mise en production |
