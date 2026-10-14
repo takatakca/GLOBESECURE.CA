@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonBody, bodyFailure } from "../../../../lib/read-json.mjs";
 import { agentContext, validOrigin, apiError } from "../../../../lib/agent-access";
 import { validIncident } from "../../../../lib/incidents.mjs";
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ export async function POST(request) {
   if (ctx.error) return ctx.error;
   if (!validOrigin(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   let body;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Format invalide." }, { status: 400 }); }
+  try { body = await readJsonBody(request); } catch (error) { const failure = bodyFailure(error); return NextResponse.json({ error: failure.message }, { status: failure.status }); }
   const incident = validIncident(body);
   if (!incident) return NextResponse.json({ error: "Catégorie ou description invalide (20 à 4000 caractères)." }, { status: 400 });
   const client = await ctx.pool.connect().catch(() => null);

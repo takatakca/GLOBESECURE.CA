@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonBody, bodyFailure } from "../../../../lib/read-json.mjs";
 import { getSession } from "../../../../lib/auth";
 import { database } from "../../../../lib/db";
 import { requestIsSameSite } from "../../../../lib/origin.mjs";
@@ -9,7 +10,7 @@ export async function POST(request) {
   if (!session?.roles?.includes("globesecure_supervisor")) return NextResponse.json({ error: "Accès supervision refusé." }, { status: 403 });
   if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   let body;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Format invalide." }, { status: 400 }); }
+  try { body = await readJsonBody(request); } catch (error) { const failure = bodyFailure(error); return NextResponse.json({ error: failure.message }, { status: failure.status }); }
   const report = validPublication(body);
   if (!report) return NextResponse.json({ error: "Contenu ou validation de publication invalide." }, { status: 400 });
   const pool = database();

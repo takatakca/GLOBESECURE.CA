@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonBody, bodyFailure } from "../../../lib/read-json.mjs";
 import { validateContact } from "../../../lib/contact.mjs";
 import { requestIsSameSite } from "../../../lib/origin.mjs";
 export const runtime = "nodejs";
@@ -15,9 +16,8 @@ export async function POST(request) {
   if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (limit(ip)) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });
-  if (Number(request.headers.get("content-length")) > 12000) return NextResponse.json({ error: "Demande trop volumineuse." }, { status: 413 });
   let body;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Format invalide." }, { status: 400 }); }
+  try { body = await readJsonBody(request); } catch (error) { const failure = bodyFailure(error); return NextResponse.json({ error: failure.message }, { status: failure.status }); }
   const validation = validateContact(body);
   if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
   const apiKey = process.env.RESEND_API_KEY;
