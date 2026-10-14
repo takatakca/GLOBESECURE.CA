@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader, SiteFooter } from "../page";
 import { getSession } from "../../lib/auth";
 import SupervisorBoard from "./SupervisorBoard";
-export const metadata = { title: "Supervision opérationnelle" };
+export const metadata = { robots: { index: false, follow: false }, title: "Supervision opérationnelle" };
 export const dynamic = "force-dynamic";
 export default async function SupervisionPage() {
   const session = await getSession();

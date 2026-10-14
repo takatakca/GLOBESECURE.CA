@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteHeader, SiteFooter } from "../page";
 import { configured, getSession, hasRole } from "../../lib/auth";
-export const metadata = { title: "Portails sécurisés" };
+export const metadata = { robots: { index: false, follow: false }, title: "Portails sécurisés" };
 export const dynamic = "force-dynamic";
 export default async function PortalPage() {
   const session = await getSession();

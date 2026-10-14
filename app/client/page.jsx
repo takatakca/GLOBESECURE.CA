@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader, SiteFooter } from "../page";
 import { getSession } from "../../lib/auth";
 import ClientReports from "./ClientReports";
-export const metadata = { title: "Espace client" };
+export const metadata = { robots: { index: false, follow: false }, title: "Espace client" };
 export const dynamic = "force-dynamic";
 export default async function ClientPage() {
   const session = await getSession();

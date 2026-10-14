@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader, SiteFooter } from "../page";
 import { getSession, hasRole } from "../../lib/auth";
 import AgentShift from "./AgentShift";
-export const metadata = { title: "Espace agent" };
+export const metadata = { robots: { index: false, follow: false }, title: "Espace agent" };
 export const dynamic = "force-dynamic";
 export default async function AgentPage() {
   const session = await getSession();
