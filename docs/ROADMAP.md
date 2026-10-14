@@ -15,9 +15,9 @@ Le dépôt initial `takatakca/GLOBESECURE.CA` sur `main` ne contenait que `READM
 | Livré dans le dépôt | CI (tests et compilation) et configuration standalone |
 | À raccorder | Livraison réelle des courriels : domaine expéditeur vérifié, clé et destinataire |
 | À réaliser | Inventaire/sauvegarde du site MochaHost existant, mapping DNS et startup cPanel |
-| À réaliser | TAKATAK Auth via OIDC/OAuth PKCE, identité centrale et droits GlobeSecure uniquement |
-| À réaliser | PostgreSQL / PostGIS, schémas avec isolation de données par organisation |
-| À réaliser | Espace agent : quarts début/fin, consentement de géolocalisation, suivi limité au quart, journal d'audit |
+| Implémenté, configuration requise | TAKATAK Auth OIDC/OAuth PKCE, sessions signées, isolation par entitlement et tenant |
+| Implémentation initiale, base à configurer | PostgreSQL : schéma des quarts, positions, consentement et audit; PostGIS à ajouter pour supervision |
+| Implémenté, non activé en production | Espace agent : START/STOP, consentement explicite, suivi du navigateur limité au quart, journal d'audit |
 | À réaliser | Espace client : mandats et rapports limités au client autorisé |
 | À réaliser | Supervision : affectations, tableaux d'opérations, carte géographique à rôles contrôlés |
 | À réaliser | Incidents : pièces jointes sécurisées, horodatage, validation, audit |
