@@ -13,6 +13,7 @@ function limit(ip) {
   return entry.count > 5;
 }
 export async function POST(request) {
+  if (process.env.PRIVACY_POLICY_APPROVED !== "true") return NextResponse.json({ error: "Réception des soumissions non activée." }, { status: 503 });
   if (!requestIsSameSite(request)) return NextResponse.json({ error: "Origine invalide." }, { status: 403 });
   const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (limit(ip)) return NextResponse.json({ error: "Trop de demandes. Réessayez plus tard." }, { status: 429 });

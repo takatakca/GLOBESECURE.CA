@@ -226,3 +226,5 @@ h1 em,h2 em{font-style:normal;color:var(--lime);font-weight:400}
 .brand-logo{width:42px;height:42px;object-fit:contain;border-radius:3px}
 .service-detail-image{display:block;width:100%;height:260px;object-fit:cover;object-position:center;margin-bottom:28px;border-radius:4px}
 @media(max-width:540px){.brand-logo{width:34px;height:34px}}
+
+.career-form{max-width:640px;margin:32px 0}.career-form label{display:flex;flex-direction:column;gap:8px;margin:15px 0}.career-form .consent{flex-direction:row}.career-form .button{margin-top:15px}
