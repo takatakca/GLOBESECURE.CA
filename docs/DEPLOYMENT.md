@@ -37,3 +37,9 @@ Variables GitHub nécessaires au staging : secrets `GLOBESECURE_STAGING_HOST`, `
 ## Vérifier la version réellement déployée
 
 Le build intègre le SHA Git dans `GET /api/health` (champ `release`). La CI vérifie cette valeur sur son serveur HTTP autonome, puis le workflow staging compare le SHA obtenu via l'URL publique de staging à `DEPLOY_SHA`. Un décalage fait échouer le pipeline, **même si l'endpoint renvoie 200**. Cela ne prouve pas une production saine : les dépendances et secrets réels doivent aussi être validés avant une bascule.
+
+## Sécurité des formulaires publics
+
+Les API de soumission et de recrutement échouent avec HTTP 503 tant que `PRIVACY_POLICY_APPROVED=true` n'a pas été approuvé dans le contexte légal réel et que `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` et le destinataire `CONTACT_TO_EMAIL` ou `CAREERS_TO_EMAIL` ne sont pas configurés. Ne pas définir la variable d'accord par simple commodité.
+
+Les formulaires appliquent une limitation en mémoire par instance. Les en-têtes `X-Real-IP` / `X-Forwarded-For` ne sont utilisés que si `GLOBESECURE_TRUST_PROXY_HEADERS=true`, une fois le proxy de confiance configuré pour retirer les valeurs client non fiables. Sinon le quota est partagé par instance. Déployer un contrôle anti-abus côté proxy/WAF pour une exploitation publique à grande échelle.

@@ -1,18 +1,21 @@
-# File des tâches — GlobeSecure
+# File des tâches exécutable — GlobeSecure
 
-Les tâches sont classées selon la sécurité, le caractère réalisable dans GitHub et la dépendance aux accès réels.
+État au 2026-10-14. Les lignes terminées correspondent au code GitHub et à la CI, pas à la production.
 
-| Priorité | État | Travail | Condition de fin |
+| Priorité | État | Tâche | Critère d'acceptation |
 | --- | --- | --- | --- |
-| P0 | En cours | Protéger l'inventaire du contenu officiel du site et éviter les régressions de source | Inventaire détaillé conservé, tests réussis |
-| P0 | En cours | Contrôles d'accès, confidentialité GPS, rapport client | Relecture sécurité, tests réels, absence d'accès inter-tenant |
-| P0 | Bloqué externe | Récupérer application MochaHost et ses configurations sans secrets | Sauvegarde et comparaison des versions établies |
-| P0 | Bloqué externe | Provisionner environnement de staging | Accès SSH, racine isolée, processus Node/TLS/health validés |
-| P0 | Bloqué externe | Raccorder TAKATAK Auth, PostgreSQL et réception Resend | Identifiants serveur injectés, migrations et tests intégrés réussis |
-| P1 | À faire | Gestion de mandats et affectations basée sur l'identité centrale | Données réelles, permissions et UI opérationnelles |
-| P1 | À faire | Carrières, candidatures sécurisées et consentements | Livraison vérifiée, politique de traitement approuvée |
-| P1 | À faire | Rondes, horaires, feuilles de temps, export paie | Tests métier, audit, isolation des tenants |
-| P1 | À faire | Parité visuelle/mobile et accessibilité | Audit design, clavier, lecteurs d'écran, tailles d'écran |
-| P0 | Bloqué externe | Déployer la version validée | Bascule réversible, santé et SHA sur production vérifiés |
+| P0 | Terminée dans GitHub | Restaurer contenu de globesecure.ca et protection anti-bot | Texte détaillé, images et tests de parité conservés |
+| P0 | Terminée dans GitHub | Corps JSON bornés, anti-abus et noindex des portails | Tests et compilation CI |
+| P0 | Terminée dans GitHub | Versionnement des builds et verrouillage des dépendances | `package-lock.json`, `npm ci`, SHA exposé par health |
+| P0 | Terminée dans GitHub | Documentation AGENTS, PROJECT_STATUS, TASK_QUEUE, AGENT_HANDOFF, DECISIONS, DEPLOYMENT | Fichiers présents et à jour |
+| P0 | Bloquée externe | Réconcilier et sauvegarder l'application MochaHost actuelle | Rapport des sources, DB, fichiers et restauration |
+| P0 | Bloquée externe | Monter staging isolé, TLS et contrôle du SHA | Run staging réussi sur version exacte |
+| P0 | Bloquée externe | Configurer TAKATAK OIDC/PostgreSQL/Resend | Secrets injectés, migrations, tests réels par rôles |
+| P0 | Bloquée externe | Approuver confidentialité, politique de localisation et conservation | Responsable identifié et politique publiée ; activation contrôlée |
+| P1 | Partielle | Recrutement : messages via Resend mais pas de dépôt CV sécurisé | Canal de CV sécurisé, traitement et purge vérifiés |
+| P1 | À réaliser | Gestion des mandats et affectations d'agents | CRUD réel, contrôle d'organisation, audit et tests |
+| P1 | À réaliser | Rondes QR/NFC, horaires, feuilles de temps, export paie | Flux métier et erreurs testés |
+| P1 | À réaliser | Accessibilité, SEO, parité visuelle et performance | Vérifications navigateurs/appareils |
+| P0 | Bloquée externe | Basculer la production après sauvegarde | Tests de régression, retour arrière, SHA/health réel |
 
-À chaque reprise, commencer par le premier chantier exécutable sans mettre en danger l'application actuelle.
+Le premier chantier exécutable sans accès externe supplémentaire doit être pris avant les tâches dépendantes du serveur.

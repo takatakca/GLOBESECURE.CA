@@ -37,3 +37,7 @@ Ne jamais ajouter de clés, mots de passe ni informations de clients dans Git. L
 ## Contenu original importé
 
 La référence officielle est [globesecure.ca](https://globesecure.ca). GitHub conserve désormais [son inventaire public](content/live-site/inventory.json) et [neuf images du site](public/original-site/). La page d'accueil Next.js en français reprend **six services** (événementiel, chantiers, hôpitaux, entreprises, commerces, réponse aux alarmes), la mission, les valeurs, la présentation, les carrières et les renseignements de contact visibles sur le site source. Le site actuel continue de fonctionner indépendamment, sans modification de son hébergement.
+
+## Relève et version compilée
+
+Lire [AGENTS.md](AGENTS.md), [état réel](docs/PROJECT_STATUS.md), [tâches](docs/TASK_QUEUE.md), [décisions](docs/DECISIONS.md) et [handoff](docs/AGENT_HANDOFF.md) avant reprise. Les installations reproductibles utilisent `npm ci`. Une réponse `/api/health` indique le SHA du build (champ `release`). Les soumissions et messages carrière restent fermés avant approbation des conditions de confidentialité et configuration des destinataires réels.
