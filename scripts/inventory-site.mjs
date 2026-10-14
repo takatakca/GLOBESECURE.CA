@@ -90,9 +90,9 @@ async function main(){
       if(!/html/i.test(x.type)&&!/<html[\s>]/i.test(x.html.slice(0,1000)))throw Error("Non-HTML response");
       const page=extractPublicPage(x.html,url);
       if(url===HOME){
-        const expected=["EVENT SECURITY","CONSTRUCTION SITE SURVEILLANCE","HOSPITAL SECURITY","CORPORATE SECURITY"];
+        const expected=["EVENT SECURITY","CONSTRUCTION SITE SURVEILLANCE","HOSPITAL SECURITY","CORPORATE SECURITY","RETAIL SECURITY","ALARM RESPONSE"];
         const blocked=/one moment, please|just a moment|cloudflare|checking your browser|cf-chl|challenge-platform|attention required/i.test(x.html.slice(0,12000));
-        if(blocked||!/GLOBESECURE/i.test(page.title)||expected.some(label=>!page.text.includes(label))){
+        if(blocked||!/GLOBESECURE/i.test(page.title)||page.text.length<3000||expected.some(label=>!page.text.includes(label))||page.assets.length<9){
           throw Error("Live homepage blocked or content integrity check failed; preserving prior GitHub snapshot");
         }
       }
