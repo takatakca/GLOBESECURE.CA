@@ -27,6 +27,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SITE_URL: https://globesecure.ca
+          GLOBESECURE_BUILD_SHA: ${{ github.sha }}
         run: npm run build
       - name: Assemble standalone artifact
         run: |
@@ -45,6 +46,7 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3077/ > /dev/null
           curl -fsS http://127.0.0.1:3077/services/evenementiel > /dev/null
+          curl -fsS http://127.0.0.1:3077/api/health | node -e 'const wanted=process.env.GITHUB_SHA; let json="";process.stdin.on("data",x=>json+=x).on("end",()=>{if(JSON.parse(json).release!==wanted){console.error("Build SHA does not match",wanted);process.exit(1)}})'
       - uses: actions/upload-artifact@v4
         with:
           name: globesecure-standalone

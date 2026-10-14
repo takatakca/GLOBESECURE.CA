@@ -35,7 +35,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npm test
-          NEXT_PUBLIC_SITE_URL="${STAGING_URL:-https://globesecure.ca}" npm run build
+          GLOBESECURE_BUILD_SHA="$DEPLOY_SHA" NEXT_PUBLIC_SITE_URL="$STAGING_URL" npm run build
           mkdir -p .next/standalone/.next
           cp -R .next/static .next/standalone/.next/
           if [ -d public ]; then cp -R public .next/standalone/; fi
@@ -60,6 +60,5 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$TARGET" "mkdir -p '$RELEASE'"
           rsync -az --protect-args -e "ssh -i $HOME/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p $SSH_PORT" .next/standalone/ "$TARGET:$RELEASE/"
           ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$TARGET" "ln -sfn '$RELEASE' '$APP_ROOT/current' && mkdir -p '$RELEASE/tmp' && touch '$RELEASE/tmp/restart.txt'"
-          if [ -n "$STAGING_URL" ]; then
-            curl -fsS --retry 4 --retry-delay 3 --retry-connrefused "$STAGING_URL/api/health"
-          fi
+          RESPONSE="$(curl -fsS --retry 4 --retry-delay 3 --retry-connrefused "$STAGING_URL/api/health")"
+          echo "$RESPONSE" | DEPLOY_SHA="$DEPLOY_SHA" node -e 'let data="";process.stdin.on("data",c=>data+=c).on("end",()=>{const health=JSON.parse(data);if(health.ok!==true||health.release!==process.env.DEPLOY_SHA){console.error("Staging release mismatch");process.exit(1)}console.log("Verified deployed release "+health.release)})'

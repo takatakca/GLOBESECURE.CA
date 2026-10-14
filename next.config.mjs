@@ -1,6 +1,7 @@
 /** Build on GitHub Actions; deploy standalone output to MochaHost without building there. */
 const nextConfig = {
   output: "standalone",
+  env: { NEXT_PUBLIC_BUILD_SHA: process.env.GLOBESECURE_BUILD_SHA || "local" },
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {
