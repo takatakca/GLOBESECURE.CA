@@ -7,5 +7,5 @@ export const metadata = {
   openGraph: { type: "website", locale: "fr_CA", siteName: "GlobeSecure" }
 };
 export default function RootLayout({ children }) {
-  return <html lang="fr"><body>{children}</body></html>;
+  return <html lang="fr"><body><a className="skip-link" href="#contenu">Aller au contenu</a>{children}</body></html>;
 }

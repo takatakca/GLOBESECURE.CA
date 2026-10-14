@@ -168,3 +168,8 @@ h1 em,h2 em{font-style:normal;color:var(--lime);font-weight:400}
 .incidents-list article span{font-size:11px;color:var(--lime)}
 .incidents-list article p{color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;font-size:13px}
 @media(max-width:700px){.supervision-head{display:block}.incidents-list{grid-template-columns:1fr}}
+
+.skip-link{position:fixed;top:-80px;left:20px;background:var(--lime);color:#09131c;padding:12px 20px;z-index:1000;font-weight:800}
+.skip-link:focus{top:12px}
+.quote-unavailable{border-color:#647c7b}
+.quote-unavailable p{color:var(--muted);font-size:14px;line-height:1.8}
