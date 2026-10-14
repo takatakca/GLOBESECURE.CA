@@ -25,7 +25,7 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Validate lock metadata
         run: |
-          node -e 'const p=require("./package.json"),l=require("./package-lock.json");if(l.lockfileVersion!==3||JSON.stringify(p.dependencies)!==JSON.stringify(l.packages[""].dependencies))process.exit(1)'
+          node -e 'const p=require("./package.json"),l=require("./package-lock.json");if(l.lockfileVersion!==3||JSON.stringify(Object.entries(p.dependencies).sort())!==JSON.stringify(Object.entries(l.packages[""].dependencies).sort()))process.exit(1)'
       - name: Commit pinned lockfile to main without force
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
