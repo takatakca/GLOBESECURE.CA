@@ -19,3 +19,5 @@
 | P0 | Bloquée externe | Basculer la production après sauvegarde | Tests de régression, retour arrière, SHA/health réel |
 
 Le premier chantier exécutable sans accès externe supplémentaire doit être pris avant les tâches dépendantes du serveur.
+
+- **Terminé en CI :** smoke HTTP complet après build (`scripts/smoke-http.mjs`, 6 services, API privées, SEO, SHA). Il doit rester obligatoire lors des futures modifications.

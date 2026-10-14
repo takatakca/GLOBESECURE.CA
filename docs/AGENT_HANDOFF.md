@@ -36,3 +36,14 @@ La production du nouveau code n'est **PAS prouvée**. Le staging GitHub Actions 
 3. Pour débloquer staging : comparer et sauvegarder la vraie installation MochaHost puis configurer les vars/secrets listés dans `docs/DEPLOYMENT.md`; seulement ensuite exécuter le workflow de staging et vérifier la réponse `/api/health.release` attendue.
 
 Ne pas recopier l'ancienne application en l'écrasant, ne pas publier de secrets, ne pas affirmer 100 %.
+
+## Complément de fin de session — 2026-10-14
+
+- **Dernière tâche terminée :** écriture du contrôle HTTP couvrant toutes les pages publiques, les six services, les endpoints privés fermés par défaut, la non-indexation et le SHA compilé.
+- **Dernier commit de code poussé avant ce complément :** `85126fd84400cddc10d53c9e57e46399ad43fdc3`.
+- **Vérification réelle :** workflow `GlobeSecure CI`, run `38625923163`, job `116064920177` : installation `npm ci`, tests unitaires, compilation Next.js, assemblage standalone, smoke HTTP et artefact : **tous réussis**.
+- **Fichiers concernés :** `scripts/smoke-http.mjs`, `.github/workflows/ci.yml` et présents documents de suivi.
+- **Tâche en cours / prochaine action exacte :** rapprocher le code MochaHost historique et configurer staging isolé ; sinon poursuivre les tests d'autorisation tenant via banc d'essai PostgreSQL/OIDC avant exploitation.
+- **Accès nécessaires :** sauvegarde de la source MochaHost, configuration de l'environnement Node, secrets GitHub staging, identifiants de fournisseur TAKATAK Auth, PostgreSQL et messagerie. Ne jamais les commiter.
+- **Déploiement :** rien de ce nouveau code n'est déclaré sur globesecure.ca ; staging non activé, workflow ignoré. `main` n'est pas une preuve de déploiement.
+- **Rappel :** le SHA du dernier commit documentaire sera postérieur à celui du test ; toujours consulter GitHub HEAD et Actions avant la prochaine écriture.

@@ -29,3 +29,7 @@ Date : **14 octobre 2026**. Dépôt `takatakca/GLOBESECURE.CA` ; branche `main`.
 5. Fonctionnalités métiers toujours à terminer : affectations, horaires, rondes, vérification du personnel, gestion complète des mandats, paie et CV sécurisé.
 
 **Conclusion : code enrichi, pas 100 %, pas de déploiement de production prouvé.**
+
+## Contrôle HTTP étendu
+
+Depuis `85126fd8`, la CI démarre le serveur standalone et vérifie l'accueil, les six pages de service, contact, carrières, soumission, confidentialité, portail, les restrictions d'API, robots/sitemap et le SHA exposé par la route santé. Run `38625923163` : succès. Aucune preuve équivalente n'existe encore pour le serveur MochaHost réel.
