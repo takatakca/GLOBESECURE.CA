@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/sync-public-assets.mjs'
+      - 'scripts/inventory-site.mjs'
       - '.github/workflows/site-assets.yml'
   workflow_dispatch:
 

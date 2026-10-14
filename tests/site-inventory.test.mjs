@@ -17,3 +17,11 @@ test("extract visible page text and links",()=>{
   assert.ok(!x.text.includes("private info"));
   assert.deepEqual(x.internalLinks,["https://globesecure.ca/equipe"]);
 });
+
+test("captures contact links and form field schemas without submitted values",()=>{
+  const html='<html><head><title>Contact</title></head><body><a href="tel:+14509993999">Appel</a><a href="mailto:contact@example.ca">Courriel</a><form action="/api/contact" method="post"><input name="email" type="email" value="private-secret"><textarea name="message"></textarea></form></body></html>';
+  const data=extractPublicPage(html,"https://globesecure.ca/");
+  assert.deepEqual(data.contacts,["tel:+14509993999","mailto:contact@example.ca"]);
+  assert.deepEqual(data.forms[0].fields,[{name:"email",type:"email"},{name:"message",type:"text"}]);
+  assert.ok(!JSON.stringify(data.forms).includes("private-secret"));
+});
