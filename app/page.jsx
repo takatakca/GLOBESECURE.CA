@@ -17,7 +17,7 @@ const whyChoose = [
 ];
 
 function Wordmark() {
-  return <Link href="/" className="brand" aria-label="GlobeSecure, accueil"><span className="brand-mark" aria-hidden="true"><span /></span><span>GLOBE<span className="brand-accent">SECURE</span><small>SÉCURITÉ PRIVÉE · QUÉBEC</small></span></Link>;
+  return <Link href="/" className="brand" aria-label="GlobeSecure, accueil"><img className="brand-logo" src="/original-site/logo.jpeg" alt="" /><span>GLOBE<span className="brand-accent">SECURE</span><small>SÉCURITÉ PRIVÉE · QUÉBEC</small></span></Link>;
 }
 export function SiteHeader() {
   return <header className="header"><div className="container header-inner"><Wordmark />

@@ -222,3 +222,7 @@ h1 em,h2 em{font-style:normal;color:var(--lime);font-weight:400}
 @media(max-width:1050px){.values-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reasons-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.about-grid{gap:5%}}
 @media(max-width:800px){.about-grid{grid-template-columns:1fr}.about-image{min-height:400px}.about-image>img{min-height:400px}.careers-band-inner{flex-direction:column;align-items:start}}
 @media(max-width:540px){.values-grid,.reasons-grid{grid-template-columns:1fr}.about-image,.about-image>img{min-height:310px}.source-hero .visual-top{font-size:8px}}
+
+.brand-logo{width:42px;height:42px;object-fit:contain;border-radius:3px}
+.service-detail-image{display:block;width:100%;height:260px;object-fit:cover;object-position:center;margin-bottom:28px;border-radius:4px}
+@media(max-width:540px){.brand-logo{width:34px;height:34px}}

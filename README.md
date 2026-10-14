@@ -33,3 +33,7 @@ Ancienne cible identifiée : `/home/bolonca/apps/globesecure` sur MochaHost. Vé
 ## Sécurité
 
 Ne jamais ajouter de clés, mots de passe ni informations de clients dans Git. Le site public ne prétend pas offrir de connexion agent, de suivi en direct ou de certification non vérifiée. Le formulaire échoue de manière explicite si la livraison email n'est pas configurée.
+
+## Contenu original importé
+
+La référence officielle est [globesecure.ca](https://globesecure.ca). GitHub conserve désormais [son inventaire public](content/live-site/inventory.json) et [neuf images du site](public/original-site/). La page d'accueil Next.js en français reprend **six services** (événementiel, chantiers, hôpitaux, entreprises, commerces, réponse aux alarmes), la mission, les valeurs, la présentation, les carrières et les renseignements de contact visibles sur le site source. Le site actuel continue de fonctionner indépendamment, sans modification de son hébergement.

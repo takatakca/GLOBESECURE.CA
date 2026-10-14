@@ -37,3 +37,10 @@ Le dépôt initial `takatakca/GLOBESECURE.CA` sur `main` ne contenait que `READM
 ## Prochaine tâche prioritaire
 
 **Réconcilier le code source de l'application déjà déployée sur MochaHost**, puis compléter TAKATAK Auth et la base de données sur une branche/instance de staging. Vérifier les comptes et les politiques d'accès avant d'activer la géolocalisation.
+
+## Migration du site public actuel (décision du propriétaire, 2026-10-14)
+
+- **Source canonique :** https://globesecure.ca (en ligne avant la migration), et non des sociétés homonymes.
+- **Capturé dans GitHub :** texte public de la page d'accueil originale en anglais (\`content/live-site/inventory.json\`) ainsi que les neuf images originales (\`public/original-site\`).
+- **Porté dans l'application Next.js :** mission, valeurs (écoute, professionnalisme, intégrité, précision), six services, pourquoi nous choisir, présentation de l'expertise combinée, carrières, et adresse/horaires indiqués sur le site source. Les nouveaux chemins \"/services\" et \"/contact\" corrigent des liens non fonctionnels dans l'ancien site.
+- **À vérifier avant production :** correspondance visuelle avec le site actuel, statut réel des licences et des mentions commerciales, coordonnées de recrutement/contact, réception des formulaires, et le code du serveur MochaHost. Ne pas déclarer une parité complète ni désactiver le site en ligne sans vérification.

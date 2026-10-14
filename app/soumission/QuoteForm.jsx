@@ -2,10 +2,12 @@
 import { useState } from "react";
 const SERVICE_OPTIONS = [
   ["", "Sélectionner un service"],
-  ["evenementiel", "Événementiel"],
-  ["sante", "Établissement de santé"],
-  ["entreprises", "Entreprise ou commerce"],
-  ["chantiers", "Chantier / construction"],
+  ["evenementiel", "Sécurité événementielle"],
+  ["sante", "Sécurité hospitalière"],
+  ["entreprises", "Sécurité d’entreprise"],
+  ["chantiers", "Surveillance de chantiers"],
+  ["commerces", "Sécurité des commerces"],
+  ["alarmes", "Réponse aux alarmes"],
   ["autre", "Autre mandat"]
 ];
 export default function QuoteForm({ enabled = false }) {
