@@ -88,7 +88,15 @@ async function main(){
     try{
       const x=await fetchPublic(url);
       if(!/html/i.test(x.type)&&!/<html[\s>]/i.test(x.html.slice(0,1000)))throw Error("Non-HTML response");
-      const page=extractPublicPage(x.html,url);report.pages.push(page);
+      const page=extractPublicPage(x.html,url);
+      if(url===HOME){
+        const expected=["EVENT SECURITY","CONSTRUCTION SITE SURVEILLANCE","HOSPITAL SECURITY","CORPORATE SECURITY"];
+        const blocked=/one moment, please|just a moment|cloudflare|checking your browser|cf-chl|challenge-platform|attention required/i.test(x.html.slice(0,12000));
+        if(blocked||!/GLOBESECURE/i.test(page.title)||expected.some(label=>!page.text.includes(label))){
+          throw Error("Live homepage blocked or content integrity check failed; preserving prior GitHub snapshot");
+        }
+      }
+      report.pages.push(page);
       console.log("PAGE "+report.pages.length+" "+url+" title="+JSON.stringify(page.title)+" headings="+JSON.stringify(page.headings.filter(h=>h.level===1)));
       for(const u of page.internalLinks)if(!visited.has(u)&&!queue.includes(u)&&queue.length<200)queue.push(u);
     }catch(e){const error=String(e.message||e).slice(0,300);report.errors.push({url,error});console.error("FETCH ERROR "+url+" "+error);}

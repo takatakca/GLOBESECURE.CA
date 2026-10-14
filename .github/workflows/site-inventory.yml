@@ -1,12 +1,6 @@
 name: GlobeSecure Live Source Inventory
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/inventory-site.mjs'
-      - '.github/workflows/site-inventory.yml'
-      - 'docs/SOURCE-OF-TRUTH.md'
   workflow_dispatch:
 
 permissions:

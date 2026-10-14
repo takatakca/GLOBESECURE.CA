@@ -1,12 +1,6 @@
 name: GlobeSecure Import Public Content & Media
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/sync-public-assets.mjs'
-      - 'scripts/inventory-site.mjs'
-      - '.github/workflows/site-assets.yml'
   workflow_dispatch:
 
 permissions:
