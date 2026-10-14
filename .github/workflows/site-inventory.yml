@@ -1,0 +1,35 @@
+name: GlobeSecure Live Source Inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/inventory-site.mjs'
+      - '.github/workflows/site-inventory.yml'
+      - 'docs/SOURCE-OF-TRUTH.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-public-website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test public content parser
+        run: node --test tests/site-inventory.test.mjs
+      - name: Inventory real website content
+        run: node scripts/inventory-site.mjs
+      - name: Preserve inventory for manual content migration
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: globesecure-live-site-inventory
+          path: audit/live-site/inventory.json
+          if-no-files-found: warn
+          retention-days: 7

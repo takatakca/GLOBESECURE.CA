@@ -1,5 +1,7 @@
 # GlobeSecure.ca
 
+> **Source officielle du contenu :** le site déjà en ligne sur https://globesecure.ca. Les pages et textes de ce dépôt sont une base technique à réconcilier avec l'existant; ne pas écraser la production. Voir [SOURCE-OF-TRUTH.md](docs/SOURCE-OF-TRUTH.md).
+
 Site vitrine et fondation de la plateforme GlobeSecure, agence canadienne de sécurité privée. Le dépôt GitHub initial du 14 octobre 2026 ne contenait que son titre : il ne contient **pas** le code historique éventuellement présent sur MochaHost. Ne pas substituer cette base à un déploiement existant sans sauvegarde, inventaire et validation de la correspondance des sources.
 
 ## Périmètre livré dans cette base
