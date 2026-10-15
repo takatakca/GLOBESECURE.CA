@@ -39,7 +39,7 @@ async function main() {
       env:migrationEnv,encoding:"utf8",timeout:25000
     });
     if(run.status!==0)throw Error("Guarded migration run failed: "+(run.stderr||run.stdout).slice(-1000));
-    assert.match(run.stdout,attempt===0?/APPLIED 009_client_requests.sql/:/VERIFIED 009_client_requests.sql/);
+    assert.match(run.stdout,attempt===0?/APPLIED 010_patrol_checkpoints.sql/:/VERIFIED 010_patrol_checkpoints.sql/);
     console.log("Guarded migration pass "+(attempt+1)+" succeeded");
   }
   server=spawn(process.execPath,[".next/standalone/server.js"],{
@@ -135,9 +135,45 @@ async function main() {
   assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:false})).status,200);
   assert.equal((await invoke("/api/supervision/assignments",adminA,"POST",payload)).status,404,"inactive site cannot be assigned");
   assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:true})).status,200);
+  // A random checkpoint code is revealed once and never included in lists.
+  assert.equal((await invoke("/api/supervision/patrol",agentA)).status,403,"agent cannot create or inspect checkpoints");
+  const createdPoint=await invoke("/api/supervision/patrol",adminA,"POST",{siteId:siteA.id,label:"Entrée principale"});
+  assert.equal(createdPoint.status,201,JSON.stringify(createdPoint.payload));
+  const code=createdPoint.payload.code;
+  const pointId=createdPoint.payload.checkpoint.id;
+  assert.match(code,/^[A-Za-z0-9_-]{32}$/);
+  assert.equal("code_digest" in createdPoint.payload.checkpoint,false,"digest must not leak");
+  const sitesWithPoints=await invoke("/api/supervision/patrol",adminA);
+  assert.equal(sitesWithPoints.payload.checkpoints.length,1);
+  assert.ok(!JSON.stringify(sitesWithPoints.payload).includes(code),"secret never reappears after creation");
+  assert.equal((await invoke("/api/supervision/patrol",adminB)).payload.checkpoints.length,0);
+  assert.equal((await invoke("/api/supervision/patrol",adminB,"PATCH",{id:pointId,active:false})).status,404,"other tenant cannot disable point");
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,409,"cannot check in without an active shift");
+  assert.equal((await invoke("/api/agent/patrol",agentB,"POST",{code})).status,404,"other tenant cannot use checkpoint token");
+  const patrolStart=new Date(Date.now()+60000);
+  patrolStart.setUTCSeconds(0,0);
+  const patrolEnd=new Date(patrolStart.getTime()+50*60000);
+  const patrolAssignment=await invoke("/api/supervision/assignments",adminA,"POST",{
+    agentSub:"agent-alpha",siteId:siteA.id,title:"Ronde bâtiment alpha",
+    startsAt:patrolStart.toISOString(),endsAt:patrolEnd.toISOString()
+  });
+  assert.equal(patrolAssignment.status,201,JSON.stringify(patrolAssignment.payload));
+
   // Exercise real clock-in and clock-out, then verify isolated time records.
   const loc={latitude:45.5,longitude:-73.6,accuracy:12};
   assert.equal((await invoke("/api/agent/shifts",agentA,"POST",{action:"start",consent:true,consentVersion:"2026-10-14",position:loc})).status,200);
+  assert.equal((await invoke("/api/agent/patrol",clientA,"POST",{code})).status,403,"clients cannot perform patrols");
+  const visit=await invoke("/api/agent/patrol",agentA,"POST",{code});
+  assert.equal(visit.status,201,JSON.stringify(visit.payload));
+  assert.equal(visit.payload.visit.label,"Entrée principale");
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,409,"one visit per checkpoint per shift");
+  assert.equal((await invoke("/api/agent/patrol",agentB)).payload.visits.length,0,"other tenant's agent cannot see visit");
+  assert.equal((await invoke("/api/supervision/patrol",adminB)).payload.visits.length,0,"other tenant supervisor cannot see visits");
+  assert.equal((await invoke("/api/supervision/patrol",adminA)).payload.visits.length,1);
+  assert.equal((await invoke("/api/supervision/patrol",adminA,"PATCH",{id:pointId,active:false})).status,200);
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,404,"disabled code rejected");
+  assert.equal((await invoke("/api/supervision/patrol",adminA,"PATCH",{id:pointId,active:true})).status,200);
+
   assert.equal((await invoke("/api/agent/shifts",agentA,"POST",{action:"stop"})).status,200);
   const mine=await invoke("/api/agent/timesheets",agentA);
   assert.equal(mine.status,200,JSON.stringify(mine.payload));
