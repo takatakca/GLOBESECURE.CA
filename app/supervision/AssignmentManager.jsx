@@ -2,11 +2,17 @@
 import { useEffect,useState } from "react";
 import SiteManager from "./SiteManager";
 const displayDate=(v)=>new Date(v).toLocaleString("fr-CA",{dateStyle:"medium",timeStyle:"short"});
+function localDate(value){
+  if(!value)return "";
+  const date=new Date(value);
+  return new Date(date.getTime()-date.getTimezoneOffset()*60_000).toISOString().slice(0,16);
+}
 export default function AssignmentManager(){
   const [data,setData]=useState({roster:[],assignments:[],sites:[]});
   const [loading,setLoading]=useState(true);
   const [working,setWorking]=useState(false);
   const [message,setMessage]=useState("");
+  const [editing,setEditing]=useState(null);
   async function read(){
     const [response,sitesResponse]=await Promise.all([
       fetch("/api/supervision/assignments",{cache:"no-store"}),
@@ -41,7 +47,9 @@ export default function AssignmentManager(){
     input.startsAt=start.toISOString();input.endsAt=end.toISOString();
     setWorking(true);setMessage("");
     try {
-      const response=await fetch("/api/supervision/assignments",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(input)});
+      const uri=editing?"/api/supervision/assignments/reschedule":"/api/supervision/assignments";
+      if(editing)input.assignmentId=editing.id;
+      const response=await fetch(uri,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(input)});
       const result=await response.json();
       if(!response.ok)throw new Error(result.error||"Création impossible.");
       form.reset();await read();setMessage("Affectation créée pour l'agent autorisé.");
@@ -60,20 +68,21 @@ export default function AssignmentManager(){
   return <><SiteManager onChanged={read}/><section className="assignment-panel" aria-label="Planification des agents">
     <div className="supervision-head"><div><span className="section-kicker">GESTION DES MANDATS</span><h2>Planifier les affectations</h2></div></div>
     <p className="muted">Les agents doivent s'inscrire eux-mêmes depuis leur espace TAKATAK. Les horaires se limitent à votre organisation; les chevauchements sont refusés côté serveur.</p>
-    <form className="assignment-form" onSubmit={create}>
-      <label>Agent inscrit *<select name="agentSub" required defaultValue=""><option value="" disabled>Sélectionner un agent</option>{data.roster.map(agent=><option key={agent.agent_sub} value={agent.agent_sub}>{agent.agent_sub}</option>)}</select></label>
-      <label>Nom du mandat *<input name="title" required minLength="5" maxLength="140" placeholder="Surveillance du hall" /></label>
-      <label>Site actif *<select name="siteId" required defaultValue=""><option value="" disabled>Sélectionner un site</option>{data.sites.filter(site=>site.active).map(site=><option key={site.id} value={site.id}>{site.name}{site.city?" · "+site.city:""}</option>)}</select></label>
-      <label>Début (heure locale) *<input name="startsAt" type="datetime-local" required /></label>
-      <label>Fin (heure locale) *<input name="endsAt" type="datetime-local" required /></label>
-      <button type="submit" className="button button-primary" disabled={working||!data.roster.length||!data.sites.some(site=>site.active)}>{working?"Enregistrement…":"Créer l'affectation ↗"}</button>
+    <form key={editing?.id||"nouveau"} className="assignment-form" onSubmit={create}>
+      <label>Agent inscrit *<select name="agentSub" required defaultValue={editing?.agent_sub||""}><option value="" disabled>Sélectionner un agent</option>{data.roster.map(agent=><option key={agent.agent_sub} value={agent.agent_sub}>{agent.agent_sub}</option>)}</select></label>
+      <label>Nom du mandat *<input name="title" required minLength="5" maxLength="140" defaultValue={editing?.title||""} placeholder="Surveillance du hall" /></label>
+      <label>Site actif *<select name="siteId" required defaultValue={editing?.site_id||""}><option value="" disabled>Sélectionner un site</option>{data.sites.filter(site=>site.active).map(site=><option key={site.id} value={site.id}>{site.name}{site.city?" · "+site.city:""}</option>)}</select></label>
+      <label>Début (heure locale) *<input name="startsAt" type="datetime-local" required defaultValue={localDate(editing?.starts_at)} /></label>
+      <label>Fin (heure locale) *<input name="endsAt" type="datetime-local" required defaultValue={localDate(editing?.ends_at)} /></label>
+      <button type="submit" className="button button-primary" disabled={working||!data.roster.length||!data.sites.some(site=>site.active)}>{working?"Enregistrement…":editing?"Enregistrer la modification ↗":"Créer l'affectation ↗"}</button>
+      {editing&&<button type="button" className="button button-outline" onClick={()=>setEditing(null)}>Annuler la modification</button>}
     </form>
     {!data.sites.some(site=>site.active)&&<p className="muted">Ajoutez d’abord un site actif ci-dessus pour planifier une affectation.</p>}
     {!data.roster.length&&<p className="muted">Aucun agent inscrit pour le moment. L'agent doit ouvrir son espace et choisir « M'inscrire aux affectations ».</p>}
     {message&&<p role="status" className="shift-message">{message}</p>}
     <div className="assignment-list">
       {data.assignments.map(item=><article key={item.id}><span className="section-kicker">{item.status==="cancelled"?"ANNULÉ":"PLANIFIÉ"}</span><h3>{item.title}</h3><p>Site : {item.site_label}</p><p>Agent : {item.agent_sub}</p><p>{displayDate(item.starts_at)} → {displayDate(item.ends_at)}</p>
-      {item.status==="scheduled"&&<button className="button button-outline button-small" type="button" disabled={working} onClick={()=>cancel(item.id)}>Annuler l'affectation</button>}</article>)}
+      {item.status==="scheduled"&&<><button className="button button-outline button-small" type="button" disabled={working} onClick={()=>{setEditing(item);setMessage("Modification de l’affectation sélectionnée.");}}>Modifier / réaffecter</button> <button className="button button-outline button-small" type="button" disabled={working} onClick={()=>cancel(item.id)}>Annuler l'affectation</button></>}</article>)}
       {!data.assignments.length&&<p className="muted">{loading?"Chargement des affectations…":"Aucune affectation enregistrée."}</p>}
     </div>
   </section></>;
