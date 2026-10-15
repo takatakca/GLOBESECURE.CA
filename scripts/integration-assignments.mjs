@@ -194,7 +194,14 @@ async function main() {
   const requestEvents=await pool.query("SELECT action,tenant_id FROM gs_client_request_events WHERE request_id=$1 ORDER BY id",[requestId]);
   assert.deepEqual(requestEvents.rows.map(e=>e.action),["acknowledge","close"],"request lifecycle must be append-only");
   assert.ok(requestEvents.rows.every(e=>e.tenant_id==="tenant-a"));
-  console.log("Integration passed: auth roles, tenant isolation, assignments, pointage, approval and client service requests.");
+  // Persistent quota: first request plus nine additional submissions is allowed,
+  // but an eleventh request by the same TAKATAK identity is refused.
+  for(let n=0;n<9;n++){
+    const extra=await invoke("/api/client/requests",clientA,"POST",{...requestBody,title:"Demande supplémentaire "+n});
+    assert.equal(extra.status,201,JSON.stringify(extra.payload));
+  }
+  assert.equal((await invoke("/api/client/requests",clientA,"POST",requestBody)).status,429,"durable 24h quota must reject request 11");
+  console.log("Integration passed: roles, tenant isolation, scheduling, approval, client requests and rate limiting.");
 }
 try {await main();}
 finally {

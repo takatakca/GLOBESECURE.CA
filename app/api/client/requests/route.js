@@ -40,6 +40,15 @@ export async function POST(request){
   if(!conn)return NextResponse.json({error:"Base indisponible."},{status:503});
   try {
     await conn.query("BEGIN");
+    // Enforce a durable per-identity quota without trusting spoofable IP headers.
+    await conn.query("SELECT pg_advisory_xact_lock(hashtext($1),hashtext($2))",[ctx.session.tenant,ctx.session.sub]);
+    const quota=await conn.query(
+      "SELECT count(*)::int AS used FROM gs_client_requests WHERE tenant_id=$1 AND author_sub=$2 AND created_at>=now()-interval '24 hours'",
+      [ctx.session.tenant,ctx.session.sub]);
+    if(quota.rows[0].used>=10){
+      await conn.query("ROLLBACK");
+      return NextResponse.json({error:"Maximum de 10 demandes par 24 h atteint pour ce compte."},{status:429});
+    }
     const created=await conn.query(
       "INSERT INTO gs_client_requests(tenant_id,author_sub,service,title,description) VALUES($1,$2,$3,$4,$5) RETURNING id,service,title,description,status,created_at,updated_at",
       [ctx.session.tenant,ctx.session.sub,data.service,data.title,data.description]);
