@@ -241,3 +241,9 @@ h1 em,h2 em{font-style:normal;color:var(--lime);font-weight:400}
 .assignment-form input,.assignment-form select{background:#091923;border:1px solid #475b65;padding:13px;color:var(--text);width:100%;min-width:0}
 .assignment-form .button{align-self:end;min-height:50px}
 @media(max-width:700px){.assignment-panel{padding:22px 17px}.assignment-form,.assignment-list{grid-template-columns:1fr}.assignment-panel .supervision-head{display:flex;flex-direction:column;align-items:flex-start}}
+
+.assignment-history{margin-top:24px;padding:24px;border:1px solid var(--line);background:#0e1b28}
+.assignment-history h3{margin:0 0 14px;font-size:22px}
+.assignment-history article{margin:12px 0;padding:15px 0;border-top:1px solid var(--line)}
+.assignment-history article p{margin:7px 0;overflow-wrap:anywhere;font-size:13px;color:var(--muted)}
+.assignment-history article strong{color:var(--text)}

@@ -103,6 +103,12 @@ async function main() {
   assert.equal(changeHistory.rows[0].tenant_id,"tenant-a");
   assert.equal(changeHistory.rows[0].actor_sub,"supervisor-alpha");
   assert.equal(changeHistory.rows[0].current_values.title,"Surveillance du soir");
+  assert.equal((await invoke("/api/supervision/assignments/history?id="+reschedule.assignmentId,agentA)).status,403,"agent cannot read supervisor change history");
+  assert.equal((await invoke("/api/supervision/assignments/history?id="+reschedule.assignmentId,adminB)).status,404,"history is tenant-isolated");
+  const history=await invoke("/api/supervision/assignments/history?id="+reschedule.assignmentId,adminA);
+  assert.equal(history.status,200);
+  assert.equal(history.payload.events.length,1);
+  assert.equal(history.payload.events[0].current_values.title,"Surveillance du soir");
   const gammaSchedule={...payload,agentSub:"agent-gamma",title:"Garde en parallèle",startsAt:revisedStarts,endsAt:revisedEnds};
   const gammaCreated=await invoke("/api/supervision/assignments",adminA,"POST",gammaSchedule);
   assert.equal(gammaCreated.status,201,JSON.stringify(gammaCreated.payload));
