@@ -35,9 +35,9 @@ async function invoke(path,roleCookie,method="GET",body) {
 async function main() {
   const conn=await pool.connect();
   try {
-    for(let n=1;n<=6;n++) {
+    for(let n=1;n<=7;n++) {
       const file="db/migrations/"+String(n).padStart(3,"0")+
-        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql"][n-1];
+        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql"][n-1];
       await conn.query(await readFile(file,"utf8"));
       console.log("Applied "+file);
     }
@@ -64,13 +64,25 @@ async function main() {
   const roster=await invoke("/api/supervision/assignments",adminA);
   assert.equal(roster.status,200);
   assert.deepEqual(roster.payload.roster.map(x=>x.agent_sub),["agent-alpha"],"must not leak other tenant roster");
+  // Sites are owned by their tenant; supervisors do not gain another tenant's sites.
+  assert.equal((await invoke("/api/supervision/sites",agentA)).status,403);
+  const siteResult=await invoke("/api/supervision/sites",adminA,"POST",{name:"Édifice Alpha",city:"Montréal"});
+  assert.equal(siteResult.status,201,JSON.stringify(siteResult.payload));
+  const siteA=siteResult.payload.site;
+  assert.equal((await invoke("/api/supervision/sites",adminA,"POST",{name:"édifice alpha",city:"Montréal"})).status,409,"duplicate tenant site must be rejected");
+  assert.equal((await invoke("/api/supervision/sites",adminB,"POST",{name:"Édifice Alpha",city:"Québec"})).status,201,"other tenant may have same site name");
+  assert.deepEqual((await invoke("/api/supervision/sites",adminA)).payload.sites.map(item=>item.city),["Montréal"],"cross-tenant site must not leak");
+  assert.equal((await invoke("/api/supervision/sites",adminB,"PATCH",{id:siteA.id,action:"setActive",active:false})).status,404,"cannot deactivate another tenant site");
   const begins=new Date(Date.now()+2*3600_000);
   begins.setUTCSeconds(0,0);
   const ends=new Date(begins.getTime()+6*3600_000);
-  const payload={agentSub:"agent-alpha",title:"Sécurité du bâtiment",siteLabel:"Site de test A",startsAt:begins.toISOString(),endsAt:ends.toISOString()};
+  const payload={agentSub:"agent-alpha",title:"Sécurité du bâtiment",siteId:siteA.id,siteLabel:"FAUX LIBELLÉ FOURNI",startsAt:begins.toISOString(),endsAt:ends.toISOString()};
   assert.equal((await invoke("/api/supervision/assignments",adminB,"POST",payload)).status,404,"cross-tenant agent cannot be assigned");
+  const otherTenantSite=await invoke("/api/supervision/assignments",adminB,"POST",{...payload,agentSub:"agent-beta"});
+  assert.equal(otherTenantSite.status,404,"cross-tenant site cannot be used even for a local agent");
   const created=await invoke("/api/supervision/assignments",adminA,"POST",payload);
   assert.equal(created.status,201,JSON.stringify(created.payload));
+  assert.equal(created.payload.assignment.site_label,"Édifice Alpha","server must derive site name from database");
   assert.equal((await invoke("/api/supervision/assignments",adminA,"POST",payload)).status,409,"overlapping hours denied");
   assert.equal((await invoke("/api/agent/assignments",clientA)).status,403,"client cannot see agent private schedules");
   const assigned=await invoke("/api/agent/assignments",agentA);
@@ -81,6 +93,9 @@ async function main() {
   assert.equal((await invoke("/api/supervision/assignments",adminB,"PATCH",{id,action:"cancel"})).status,404,"cross-tenant cancellation denied");
   assert.equal((await invoke("/api/supervision/assignments",adminA,"PATCH",{id,action:"cancel"})).status,200);
   assert.equal((await invoke("/api/agent/assignments",agentA)).payload.assignments[0].status,"cancelled");
+  assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:false})).status,200);
+  assert.equal((await invoke("/api/supervision/assignments",adminA,"POST",payload)).status,404,"inactive site cannot be assigned");
+  assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:true})).status,200);
   // Exercise real clock-in and clock-out, then verify isolated time records.
   const loc={latitude:45.5,longitude:-73.6,accuracy:12};
   assert.equal((await invoke("/api/agent/shifts",agentA,"POST",{action:"start",consent:true,consentVersion:"2026-10-14",position:loc})).status,200);
