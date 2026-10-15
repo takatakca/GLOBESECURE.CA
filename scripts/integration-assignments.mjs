@@ -246,6 +246,20 @@ async function main() {
   const stored=await pool.query("SELECT code_digest FROM gs_patrol_checkpoints WHERE tenant_id=$1 AND id=$2",["tenant-a",pointId]);
   assert.equal(stored.rowCount,1);
   assert.notEqual(stored.rows[0].code_digest,code,"plaintext checkpoint secret must not be stored");
+  assert.equal((await invoke("/api/supervision/patrol",adminB,"PATCH",{id:pointId,action:"rotate"})).status,404,"another tenant cannot rotate the marker");
+  const rotated=await invoke("/api/supervision/patrol",adminA,"PATCH",{id:pointId,action:"rotate"});
+  assert.equal(rotated.status,200,JSON.stringify(rotated.payload));
+  const updatedCode=rotated.payload.code;
+  assert.match(updatedCode,/^[A-Za-z0-9_-]{32}$/);
+  assert.notEqual(updatedCode,code,"rotation must invalidate original marker");
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,404,"old code must be invalid after rotation");
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code:updatedCode})).status,409,"new code is recognized but stopped shift cannot visit");
+  const postRotation=await invoke("/api/supervision/patrol",adminA);
+  assert.equal(postRotation.payload.visits.length,1,"old visits must survive marker rotation");
+  assert.ok(!JSON.stringify(postRotation.payload).includes(updatedCode),"rotated code must not be retrievable via GET");
+  const auditRotation=await pool.query("SELECT 1 FROM gs_audit WHERE tenant_id=$1 AND action='patrol.checkpoint.rotate'",["tenant-a"]);
+  assert.equal(auditRotation.rowCount,1,"rotation audited");
+
   console.log("Integration passed: roles, tenant isolation, assignments, patrol checkpoint scans, approval and client requests.");
 }
 try {await main();}
