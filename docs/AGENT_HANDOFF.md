@@ -60,3 +60,7 @@ Le code a été poussé sur `main`, mais **l'application en ligne n'a pas été 
 - **Tâche en cours / prochaine action exacte :** examiner la gestion structurée des mandats/sites et les corrections d'heures auditées, puis reprendre le raccordement MochaHost dès que l'accès au code historique et le staging sont vérifiés.
 - **Déploiement :** aucun nouveau déploiement vérifié en production ; staging GitHub Actions ignoré/non configuré. Ne pas publier sans sauvegarde et sans preuve du SHA exposé par `/api/health`.
 - **Accès manquants :** lecture/sauvegarde du site MochaHost, secrets OIDC TAKATAK, PostgreSQL cible, Resend, SSH et URL de staging, politiques vie privée et paie approuvées.
+
+## Correctif d'accès ciblé (2026-10-15)
+
+Les rôles d'affichage sont désormais exacts : `globesecure_admin` n'ouvre plus par défaut l'interface agent si le compte n'a pas `globesecure_agent`. Cela évite de présenter un bouton START/STOP que le backend refuse, et empêche d'étendre implicitement la géolocalisation au rôle d'administration. Code : `lib/roles.mjs`, `lib/auth.js`, `tests/roles.test.mjs`. Dernier commit de code d'approbation testé : `4f224d289ebd8988991a2808c51aa67fabbcd3ba` ; run CI `38735806948` réussi. Le présent correctif doit être vérifié sur la CI associée à son commit.

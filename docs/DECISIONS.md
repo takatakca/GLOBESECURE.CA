@@ -18,3 +18,5 @@
 - **2026-10-15 — Qualité.** Vérifier les fonctionnalités sensibles dans GitHub Actions contre un PostgreSQL éphémère et au moyen de sessions signées de test. Les identifiants fictifs CI ne remplacent pas une intégration OIDC réelle.
 
 - **2026-10-15 — Approbation non destructive.** Les superviseurs peuvent approuver ou révoquer le statut d'un quart terminé sans changer les horaires bruts. Les événements de décision sont append-only, liés au tenant et au quart ; un statut approuvé n'est pas encore une intégration de paie.
+
+- **2026-10-15 — Rôles exacts.** Le rôle `globesecure_admin` ne donne pas implicitement les fonctions agents (notamment géolocalisation START/STOP) ni les capacités superviseur. Chaque action sensible exige le rôle métier explicite, cohérent entre l'interface et l'API.
