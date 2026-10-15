@@ -1,6 +1,5 @@
 // Isolated CI integration test. NEVER point this at a production database.
-import { readFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { spawn,spawnSync } from "node:child_process";
 import { SignJWT } from "jose";
 import pg from "pg";
 import assert from "node:assert/strict";
@@ -33,15 +32,16 @@ async function invoke(path,roleCookie,method="GET",body) {
   return {status:response.status,payload};
 }
 async function main() {
-  const conn=await pool.connect();
-  try {
-    for(let n=1;n<=9;n++) {
-      const file="db/migrations/"+String(n).padStart(3,"0")+
-        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql","_assignment_changes.sql","_client_requests.sql"][n-1];
-      await conn.query(await readFile(file,"utf8"));
-      console.log("Applied "+file);
-    }
-  } finally {conn.release();}
+  // The same guarded, checksum-tracked migration runner that staging will use.
+  const migrationEnv={...process.env,GLOBESECURE_DEPLOYMENT_ENV:"ci",GLOBESECURE_MIGRATE_ENABLED:"true",GLOBESECURE_BACKUP_VERIFIED:"true"};
+  for(let attempt=0;attempt<2;attempt++){
+    const run=spawnSync(process.execPath,["scripts/migrate-db.mjs","--apply"],{
+      env:migrationEnv,encoding:"utf8",timeout:25000
+    });
+    if(run.status!==0)throw Error("Guarded migration run failed: "+(run.stderr||run.stdout).slice(-1000));
+    assert.match(run.stdout,attempt===0?/APPLIED 009_client_requests.sql/:/VERIFIED 009_client_requests.sql/);
+    console.log("Guarded migration pass "+(attempt+1)+" succeeded");
+  }
   server=spawn(process.execPath,[".next/standalone/server.js"],{
     env:{...process.env,PORT:"3078",HOSTNAME:"127.0.0.1"},stdio:["ignore","pipe","pipe"]
   });
