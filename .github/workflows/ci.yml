@@ -13,7 +13,21 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: globesecure_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d globesecure_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,6 +63,15 @@ jobs:
           curl -fsS http://127.0.0.1:3077/services/evenementiel > /dev/null
           EXPECTED_SHA="$GITHUB_SHA" node scripts/smoke-http.mjs
           curl -fsS http://127.0.0.1:3077/api/health | node -e 'const wanted=process.env.GITHUB_SHA; let json="";process.stdin.on("data",x=>json+=x).on("end",()=>{if(JSON.parse(json).release!==wanted){console.error("Build SHA does not match",wanted);process.exit(1)}})'
+      - name: PostgreSQL and authenticated multi-tenant API integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/globesecure_test
+          GLOBESECURE_ALLOW_TEST_DB: 'true'
+          NEXT_PUBLIC_SITE_URL: https://globesecure.ca
+          TAKATAK_OIDC_ISSUER: https://oidc.integration.invalid
+          TAKATAK_OIDC_CLIENT_ID: globesecure-ci
+          SESSION_SECRET: ci-test-not-for-production-01234567890123456789
+        run: node scripts/integration-assignments.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: globesecure-standalone
