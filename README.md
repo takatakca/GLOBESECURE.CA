@@ -65,3 +65,8 @@ Une demande de service peut désormais être créée depuis le portail client (a
 ## Rondes avec points de contrôle
 
 Le code comprend `010_patrol_checkpoints.sql`, la gestion des checkpoints et la saisie/scannérisation QR lorsque le navigateur est compatible. Un superviseur voit une seule fois le code généré; le serveur conserve uniquement sa signature SHA-256. Les agents doivent avoir un quart actif et une affectation valide au site du checkpoint. **Attestation de code, pas preuve irréfutable de présence physique.** Voir `docs/AGENT_HANDOFF.md` avant toute mise en service.
+
+
+## Impression locale des QR
+
+Le superviseur peut afficher et imprimer un QR pour un code de contrôle créé ou renouvelé, sans l'envoyer à un service externe. La bibliothèque MIT est documentée dans `vendor/LICENSE`. Les étiquettes sont des codes copiables et ne remplacent pas une preuve physique de présence.

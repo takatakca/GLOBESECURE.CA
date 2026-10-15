@@ -85,3 +85,8 @@ Après sauvegarde **réellement vérifiée** et migrations 001–009, appliquer 
 Les codes aléatoires de 192 bits ne sont **pas récupérables** : seul leur SHA-256 est conservé. En cas de perte/divulgation, désactiver le point puis en créer un nouveau. Leur impression doit rester hors des services QR tiers qui pourraient récupérer le code. Un code partagé entre personnes ou photographié peut être scanné sans présence sur le site : ne pas l'utiliser comme preuve juridique certaine. La caméra utilise seulement le navigateur de l'agent au moment de sa demande explicite.
 
 La CI valide l'exécution et la réexécution sans modifications des migrations 001–010 sur PostgreSQL 16 local jetable. Aucun staging ou déploiement de production n'a été exécuté par cette mise à jour.
+
+
+## Rotation des points et QR générés localement
+
+La supervision utilise `vendor/qrcode-generator.mjs` (MIT, licence `vendor/LICENSE`) afin de rendre les QR en SVG sans service externe. Toute photographie d'un code constitue une copie exploitable. La fonction de rotation (`PATCH /api/supervision/patrol`, `action=rotate`) invalide le code précédent et garde l'historique des passages. Retirer les anciennes étiquettes après rotation. Le scanner utilise `BarcodeDetector` si disponible; une saisie manuelle existe sur les autres appareils.

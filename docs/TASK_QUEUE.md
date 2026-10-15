@@ -21,3 +21,7 @@
 | P0 | **Bloqué validation** | Release réelle HTTPS vérifiée et rollback test avant bascule |
 
 Le chantier reprenable immédiatement est la rotation/émission des codes QR ou les mandats; voir `docs/AGENT_HANDOFF.md`. **Ne jamais remplacer la production existante sans sauvegarde.**
+
+
+- **Terminé dans le dépôt :** génération locale d'images QR, impression, remplacement audité d'un code compromis et préservation des passages. Tests CI de rotation et de rendu réussis.
+- **Reste à faire :** intégration NFC, tournées planifiées et alertes, essais sur appareils réels, sécurisation des étiquettes sur site et politique de preuve de présence. Le code QR statique reste transférable.

@@ -42,3 +42,15 @@ Inventaire et sauvegarde vérifiés MochaHost, configuration du staging Node 22 
 3. Dès qu'un accès MochaHost est validé : sauvegarder/inventorier la production existante, préparer staging strictement isolé, appliquer `010_patrol_checkpoints.sql` après 009 sur DB sauvegardée avec `scripts/migrate-db.mjs`, connecter OIDC réel et vérifier `/api/health.release` sur HTTPS avant toute bascule. Sans ces étapes, **pas de publication production**.
 
 Le dépôt GitHub préserve le travail entre sessions; aucune reprise automatique n'est active sans orchestrateur externe autorisé.
+
+
+## Complément — génération QR hors ligne et rotation (2026-10-15)
+
+- **Dernière tâche terminée :** régénération transactionnelle des codes de contrôle via `PATCH /api/supervision/patrol` avec `action=rotate`. L'ancien code devient invalide, le nouveau ne s'affiche qu'une seule fois, les visites passées sont conservées.
+- **QR imprimables :** `vendor/qrcode-generator.mjs` (MIT, Kazuhiko Arase, `vendor/LICENSE`), `app/supervision/CheckpointQr.jsx` et `PatrolManager.jsx` produisent le QR localement et l'impriment. Aucun service externe ne reçoit le code.
+- **Dernier commit technique avant cette documentation :** `e086023241893cb184ee9c793644795b3d228bbe`. La présente relève produira un SHA différent : toujours consulter HEAD.
+- **Vérifications réussies :** CI `38791984213` pour rotation/visites PostgreSQL ; CI `38792303953` pour générateur QR et tests unitaires. Vérifier le dernier run CI du commit `e0860232` et le commit documentaire.
+- **Fichiers modifiés dans cette phase :** `lib/patrol.mjs`, `tests/patrol.test.mjs`, `app/api/supervision/patrol/route.js`, `app/supervision/{PatrolManager,CheckpointQr}.jsx`, `app/globals.css`, `scripts/integration-assignments.mjs`, `tests/qr-renderer.test.mjs`, `vendor/`, et documents de suivi.
+- **Statut réel du déploiement :** staging toujours ignoré ; nouveau code NON vérifié sur `globesecure.ca`. L'ancien site MochaHost n'a pas été écrasé.
+- **Blocages externes :** inventaire/sauvegarde MochaHost, HTTPS et Node staging, TAKATAK OIDC réel, PostgreSQL/Resend en exploitation, confidentialité/rétention et essais smartphone. Ne publier ni secrets ni codes QR dans les journaux.
+- **Prochaine action exacte :** inspecter HEAD et son dernier pipeline; corriger toute erreur; poursuivre les tournées planifiées/alertes ou la gestion des mandats. Une fois les accès MochaHost obtenus et sauvegardés, valider staging isolé et SHA réel sur `/api/health.release`.

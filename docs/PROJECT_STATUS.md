@@ -26,3 +26,10 @@ CI `38791376787` sur `82f2fd1b1a33acda89bb5332e8c3fc525e7a0faf` : **succès**, i
 4. Mandats commerciaux/contrats, paie, validations réglementaires, recrutement avec CV, notifications, audits et tests appareils à compléter.
 
 **Critère de fin :** compilation verte seule ≠ 100 %. Les services tiers, données réelles, sécurité et déploiement doivent être validés.
+
+
+## QR imprimables et régénération (2026-10-15)
+
+Le code comprend désormais la régénération des secrets de checkpoint sans supprimer les visites précédentes. L'image QR est produite localement via une implémentation MIT conservée dans `vendor/`; le code n'est jamais communiqué à un service tiers. L'impression est disponible lors de l'émission unique d'un secret. Les QR restent des codes copiables et ne prouvent pas physiquement le déplacement.
+
+CI `38791984213` réussie pour la rotation auditée en PostgreSQL, CI `38792303953` réussie pour les tests du générateur QR. Les dernières Actions sur `main` doivent être contrôlées. **Aucun déploiement réel constaté sur globesecure.ca.**

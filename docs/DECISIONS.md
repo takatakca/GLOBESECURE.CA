@@ -39,3 +39,7 @@
 - L'agent ne peut enregistrer de passage que pendant un quart actif, pour un site actif auquel il est affecté; une seule visite par checkpoint et quart. Le tenant et le sujet viennent uniquement de TAKATAK Auth.
 - Une possession de code statique ne prouve pas physiquement la présence. La caméra (si navigateur compatible `BarcodeDetector`) et l'entrée manuelle sont deux moyens de présentation du même code. Aucune photo ou position GPS supplémentaire n'est capturée par le module de ronde.
 - Les sites, codes et passages demeurent privés par tenant ; leurs politiques de stockage, preuve et rétention doivent être validées avant l'exploitation.
+
+
+- **2026-10-15 — Rotation auditée.** Un superviseur peut remplacer le code d'un point actif; l'ancien code est invalide immédiatement et les passages ne sont pas effacés.
+- **2026-10-15 — QR en local.** L'encodeur MIT de Kazuhiko Arase est inclus dans `vendor/` avec licence. Le QR est calculé hors ligne dans le navigateur et n'est pas envoyé à une application tierce.
