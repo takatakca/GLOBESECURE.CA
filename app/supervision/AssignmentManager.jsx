@@ -13,6 +13,7 @@ export default function AssignmentManager(){
   const [working,setWorking]=useState(false);
   const [message,setMessage]=useState("");
   const [editing,setEditing]=useState(null);
+  const [history,setHistory]=useState(null);
   async function read(){
     const [response,sitesResponse]=await Promise.all([
       fetch("/api/supervision/assignments",{cache:"no-store"}),
@@ -52,8 +53,19 @@ export default function AssignmentManager(){
       const response=await fetch(uri,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(input)});
       const result=await response.json();
       if(!response.ok)throw new Error(result.error||"Création impossible.");
-      form.reset();await read();setMessage("Affectation créée pour l'agent autorisé.");
+      form.reset();setEditing(null);await read();setMessage(editing?"Affectation modifiée et historisée.":"Affectation créée pour l'agent autorisé.");
     }catch(error){setMessage(error.message);}finally{setWorking(false);}
+  }
+  async function showHistory(id) {
+    if(history?.id===id){setHistory(null);return;}
+    setWorking(true);setMessage("");
+    try {
+      const response=await fetch("/api/supervision/assignments/history?"+new URLSearchParams({id}),{cache:"no-store"});
+      const payload=await response.json();
+      if(!response.ok)throw Error(payload.error||"Historique indisponible.");
+      setHistory({id,events:payload.events||[]});
+    }catch(error){setMessage(error.message);}
+    finally{setWorking(false);}
   }
   async function cancel(id){
     if(working||!window.confirm("Annuler cette affectation ?"))return;
@@ -82,8 +94,17 @@ export default function AssignmentManager(){
     {message&&<p role="status" className="shift-message">{message}</p>}
     <div className="assignment-list">
       {data.assignments.map(item=><article key={item.id}><span className="section-kicker">{item.status==="cancelled"?"ANNULÉ":"PLANIFIÉ"}</span><h3>{item.title}</h3><p>Site : {item.site_label}</p><p>Agent : {item.agent_sub}</p><p>{displayDate(item.starts_at)} → {displayDate(item.ends_at)}</p>
-      {item.status==="scheduled"&&<><button className="button button-outline button-small" type="button" disabled={working} onClick={()=>{setEditing(item);setMessage("Modification de l’affectation sélectionnée.");}}>Modifier / réaffecter</button> <button className="button button-outline button-small" type="button" disabled={working} onClick={()=>cancel(item.id)}>Annuler l'affectation</button></>}</article>)}
+      <button className="button button-outline button-small" type="button" disabled={working} onClick={()=>showHistory(item.id)}>{history?.id===item.id?"Fermer l’historique":"Historique"}</button> {item.status==="scheduled"&&<><button className="button button-outline button-small" type="button" disabled={working} onClick={()=>{setEditing(item);setMessage("Modification de l’affectation sélectionnée.");}}>Modifier / réaffecter</button> <button className="button button-outline button-small" type="button" disabled={working} onClick={()=>cancel(item.id)}>Annuler l'affectation</button></>}</article>)}
       {!data.assignments.length&&<p className="muted">{loading?"Chargement des affectations…":"Aucune affectation enregistrée."}</p>}
     </div>
+    {history&&<aside className="assignment-history" aria-live="polite">
+      <h3>Historique des changements</h3>
+      {history.events.map((event,index)=><article key={index}>
+        <p><strong>{displayDate(event.changed_at)}</strong> · Superviseur : {event.actor_sub}</p>
+        <p>Avant : {event.previous_values?.title} · {event.previous_values?.agentSub} · {event.previous_values?.siteLabel}</p>
+        <p>Après : {event.current_values?.title} · {event.current_values?.agentSub} · {event.current_values?.siteLabel}</p>
+      </article>)}
+      {!history.events.length&&<p>Aucune modification d’horaire enregistrée.</p>}
+    </aside>}
   </section></>;
 }
