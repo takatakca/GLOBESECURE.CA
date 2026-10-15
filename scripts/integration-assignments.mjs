@@ -35,9 +35,9 @@ async function invoke(path,roleCookie,method="GET",body) {
 async function main() {
   const conn=await pool.connect();
   try {
-    for(let n=1;n<=7;n++) {
+    for(let n=1;n<=8;n++) {
       const file="db/migrations/"+String(n).padStart(3,"0")+
-        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql"][n-1];
+        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql","_assignment_changes.sql"][n-1];
       await conn.query(await readFile(file,"utf8"));
       console.log("Applied "+file);
     }
@@ -84,6 +84,23 @@ async function main() {
   assert.equal(created.status,201,JSON.stringify(created.payload));
   assert.equal(created.payload.assignment.site_label,"Édifice Alpha","server must derive site name from database");
   assert.equal((await invoke("/api/supervision/assignments",adminA,"POST",payload)).status,409,"overlapping hours denied");
+  const revisedStarts=new Date(begins.getTime()+9*3600_000).toISOString();
+  const revisedEnds=new Date(ends.getTime()+9*3600_000).toISOString();
+  const reschedule={...payload,assignmentId:created.payload.assignment.id,title:"Surveillance du soir",startsAt:revisedStarts,endsAt:revisedEnds};
+  assert.equal((await invoke("/api/supervision/assignments/reschedule",agentA,"POST",reschedule)).status,403,"agent cannot reschedule");
+  assert.equal((await invoke("/api/supervision/assignments/reschedule",adminB,"POST",reschedule)).status,404,"cannot modify another tenant's assignment");
+  const changed=await invoke("/api/supervision/assignments/reschedule",adminA,"POST",reschedule);
+  assert.equal(changed.status,200,JSON.stringify(changed.payload));
+  assert.equal(changed.payload.assignment.title,"Surveillance du soir");
+  assert.equal(changed.payload.assignment.site_label,"Édifice Alpha","server must keep canonical site label");
+  assert.equal(new Date(changed.payload.assignment.starts_at).toISOString(),revisedStarts);
+  const changeHistory=await pool.query(
+    "SELECT tenant_id,actor_sub,previous_values,current_values FROM gs_assignment_changes WHERE assignment_id=$1",
+    [reschedule.assignmentId]);
+  assert.equal(changeHistory.rowCount,1,"schedule edit must be appended to audit");
+  assert.equal(changeHistory.rows[0].tenant_id,"tenant-a");
+  assert.equal(changeHistory.rows[0].actor_sub,"supervisor-alpha");
+  assert.equal(changeHistory.rows[0].current_values.title,"Surveillance du soir");
   assert.equal((await invoke("/api/agent/assignments",clientA)).status,403,"client cannot see agent private schedules");
   const assigned=await invoke("/api/agent/assignments",agentA);
   assert.equal(assigned.status,200);
