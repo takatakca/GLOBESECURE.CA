@@ -39,3 +39,11 @@ Le site **https://globesecure.ca** est la source officielle du contenu commercia
 ## Validation des pointages (2026-10-15)
 
 La migration `006_shift_approvals.sql` relie les décisions au couple `tenant_id`/`shift_id` par clé étrangère. Le statut `unreviewed`, `approved` ou `revoked` apparaît dans les relevés et le CSV. L'API de décision enregistre le superviseur et un événement immuable à chaque changement ; aucune modification de la durée effective ni calcul de paie n'est effectué. **Run CI `38735806948` réussi** : tests PostgreSQL pour l'approbation, la révocation et le refus d'accès inter-tenant.
+
+## Module des sites opérationnels (2026-10-15)
+
+Migration additive `007_sites.sql` : sites privés par tenant (`gs_sites`) et clé étrangère composite `(tenant_id,site_id)` dans `gs_assignments`. Les sites sont créés depuis la supervision, désactivables/réactivables sans supprimer les anciennes affectations. Les nouvelles affectations de l'interface choisissent un site actif, dont le libellé est récupéré du serveur et non du navigateur. Les anciennes affectations libres restent lisibles grâce au champ `site_label` historique. Les écritures sites et les audits sont atomiques ; les opérations de planification obtiennent un verrou de partage empêchant la désactivation pendant leur vérification.
+
+**Tests GitHub Actions :** `38773870422` réussi : migration 007, deux organisations, contrôle des rôles, listes tenant-isolées, noms uniques par tenant, protection contre les sites externes ou inactifs, conservation de la dénomination serveur. Le correctif de concurrence `ca5b3d626607e6c03539501d9530e5061e2a66f4` est à vérifier dans son propre run CI.
+
+**Non déployé sur globesecure.ca** : le staging MochaHost ne dispose pas de configuration validée ni d'une sauvegarde prouvée.

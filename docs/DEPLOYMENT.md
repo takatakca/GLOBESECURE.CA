@@ -55,3 +55,9 @@ Une validation de production requiert toujours les vrais clients OIDC, les envir
 ## Migration 006 et décisions des superviseurs
 
 Après les cinq premières migrations, appliquer `db/migrations/006_shift_approvals.sql` uniquement sur une base sauvegardée/staging. Les approbations sont tenant-scopées via clé étrangère composite. L'API `/api/supervision/timesheets/approval` n'accepte que le rôle `globesecure_supervisor` sur un quart déjà terminé du même tenant ; chaque transition est inscrite dans `gs_shift_approval_events` (historique append-only) et `gs_audit`. Ne pas utiliser l'export CSV comme fichier de paie tant que les politiques de correction, double signature éventuelle, gestion d'arrondis, déductions et contrôles légaux n'ont pas été approuvés.
+
+## Migration 007 — registre des sites
+
+Appliquer `db/migrations/007_sites.sql` **après la migration 006**, sur base sauvegardée et en staging. Elle ajoute `gs_sites` (noms uniques par organisation, statut actif/inactif, auteur de création) et un `site_id` facultatif à `gs_assignments` avec FK composite `tenant_id,site_id`. Les anciennes affectations restent inchangées. Les nouveaux horaires liés à un site conservent également un libellé historique.
+
+Les superviseurs gèrent les sites via `/api/supervision/sites` (GET, POST, PATCH); le rôle agent et le rôle client n'y ont pas accès. Désactiver un site bloque sa sélection pour toute **nouvelle** affectation mais n'annule pas les anciennes. Appliquer les migrations sur une base isolée, valider les rôles réels et les accès PostgreSQL avant la publication. Le staging sur MochaHost reste non provisionné selon les derniers états observés.

@@ -20,3 +20,6 @@
 - **2026-10-15 — Approbation non destructive.** Les superviseurs peuvent approuver ou révoquer le statut d'un quart terminé sans changer les horaires bruts. Les événements de décision sont append-only, liés au tenant et au quart ; un statut approuvé n'est pas encore une intégration de paie.
 
 - **2026-10-15 — Rôles exacts.** Le rôle `globesecure_admin` ne donne pas implicitement les fonctions agents (notamment géolocalisation START/STOP) ni les capacités superviseur. Chaque action sensible exige le rôle métier explicite, cohérent entre l'interface et l'API.
+
+- **2026-10-15 — Sites de sécurité internes.** Les sites créés localement sont des lieux opérationnels rattachés à `tenant_id`, jamais des clients ou organisations maîtres. Ils restent indépendants du CRM central TAKATAK. La désactivation est réversible et ne détruit ni l'historique ni les affectations existantes.
+- **2026-10-15 — Source serveur et concurrence.** Pour une affectation liée à un site, le nom est repris exclusivement de la DB avec vérification du tenant et du statut actif sous verrou; pas de confiance accordée au libellé du navigateur. Audit de création des sites transactionnel.

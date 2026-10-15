@@ -12,7 +12,7 @@ Date : 2026-10-15. Poursuivre les tâches indépendantes malgré les dépendance
 | P0 | En attente de configuration | Raccorder OIDC TAKATAK, PostgreSQL, Resend | Migrations, comptes réels, flux de courriels et tests de rôles |
 | P0 | En attente d'approbation | Vie privée, localisation et politiques de rétention | Politique approuvée, responsable, purge et validation |
 | P1 | À réaliser | Modifier/réaffecter les affectations avec audit | Permissions, prévention de chevauchement, notifications |
-| P1 | À réaliser | Mandats, sites protégés et demandes clients | Gestion métier liée au tenant avec vérification |
+| P1 | Partiel, sites opérationnels testés | Sites protégés et mandats/demandes clients | Sites tenant-isolés et affectations liées; restent mandat contractuel, demandes clients et workflow d'édition |
 | P1 | À réaliser | Ronde QR/NFC, passages et preuves d'inspection | API et UI sécurisées, tests matériels |
 | P1 | Partiel et testé en CI | Validation/révocation des pointages avec audit | Approbations en DB et interface réussies ; restent corrections d'heures, règles métier et export paie homologué |
 | P1 | À réaliser | Gestion du personnel, formations, permis | Gestion autorisée sans CRM maître parallèle |
@@ -21,3 +21,5 @@ Date : 2026-10-15. Poursuivre les tâches indépendantes malgré les dépendance
 | P0 | Bloqué jusqu'aux validations | Basculer la production | Release exacte vérifiée, rollback testé |
 
 Le prochain agent doit lire `docs/AGENT_HANDOFF.md`, identifier le SHA `main` et la dernière CI, puis prendre le premier chantier indépendant autorisé. Le pipeline ne déploie pas la production actuelle sans vérification des accès et des sauvegardes.
+
+- **2026-10-15 :** registre opérationnel des sites créé (`007_sites.sql`, API et interface supervision), archivage réversible et lien sécurisé aux affectations. CI PostgreSQL `38773870422` réussie. La gestion complète du contrat client et de la tarification n'est **pas** réalisée.

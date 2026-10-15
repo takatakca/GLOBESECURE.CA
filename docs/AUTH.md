@@ -73,3 +73,7 @@ Adapter les 30 jours à la politique validée. Le script refuse les valeurs manq
 ## Approbation des heures par superviseur
 
 Après migration `006_shift_approvals.sql`, l'API d'approbation exige `globesecure_supervisor`, l'origine du site, un ID de quart valide et l'existence d'un quart terminé au sein du même tenant. Les actions `approve` et `revoke` sont journalisées séparément. Un agent consulte uniquement le statut de ses propres heures. Le CSV conserve le statut pour éviter de confondre pointages bruts et périodes approuvées.
+
+## Sites opérationnels (migration 007)
+
+L'API `/api/supervision/sites` exige le rôle exact `globesecure_supervisor`. Le tenant est dérivé de la session et ne peut pas être fourni par le navigateur. La création, activation ou désactivation des sites est auditée. Les agents voient le libellé de leurs propres affectations, et non l'annuaire complet des sites. Les sites sont des objets opérationnels locaux; ils ne créent ni compte utilisateur ni entreprise dans TAKATAK.
