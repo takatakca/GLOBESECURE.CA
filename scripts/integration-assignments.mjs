@@ -237,7 +237,16 @@ async function main() {
     assert.equal(extra.status,201,JSON.stringify(extra.payload));
   }
   assert.equal((await invoke("/api/client/requests",clientA,"POST",requestBody)).status,429,"durable 24h quota must reject request 11");
-  console.log("Integration passed: roles, tenant isolation, scheduling, approval, client requests and rate limiting.");
+  // A second agent in the SAME tenant also needs an actual assignment at the checkpoint site.
+  const gammaClock=await invoke("/api/agent/shifts",agentC,"POST",{action:"start",consent:true,consentVersion:"2026-10-14",position:loc});
+  assert.equal(gammaClock.status,200,JSON.stringify(gammaClock.payload));
+  assert.equal((await invoke("/api/agent/patrol",agentC,"POST",{code})).status,403,"same-tenant but unassigned agent must not scan");
+  assert.equal((await invoke("/api/agent/shifts",agentC,"POST",{action:"stop"})).status,200);
+  assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,409,"stopped shift cannot scan");
+  const stored=await pool.query("SELECT code_digest FROM gs_patrol_checkpoints WHERE tenant_id=$1 AND id=$2",["tenant-a",pointId]);
+  assert.equal(stored.rowCount,1);
+  assert.notEqual(stored.rows[0].code_digest,code,"plaintext checkpoint secret must not be stored");
+  console.log("Integration passed: roles, tenant isolation, assignments, patrol checkpoint scans, approval and client requests.");
 }
 try {await main();}
 finally {
