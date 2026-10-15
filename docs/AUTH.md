@@ -61,3 +61,11 @@ GLOBESECURE_PRUNE_ENABLED=true GLOBESECURE_POSITION_RETENTION_DAYS=30 npm run db
 ```
 
 Adapter les 30 jours à la politique validée. Le script refuse les valeurs manquantes et traite au plus 100 000 positions par exécution. Les journaux d'audit et feuilles de temps sont conservés séparément suivant la politique applicable.
+
+## Inscription des agents et affectations (2026-10-15)
+
+- Appliquer également `db/migrations/004_client_reports.sql` et `005_assignments.sql` après 001–003.
+- Les agents ayant le rôle TAKATAK `globesecure_agent` s'inscrivent volontairement à `/api/agent/roster` depuis leur propre session. Le serveur dérive les champs `tenant_id` et `agent_sub` du JWT signé, jamais du client.
+- Les superviseurs `globesecure_supervisor` voient seulement les agents inscrits de leur tenant et créent/annulent des affectations planifiées. L'API valide la plage (max. 16 heures, 120 jours), les chevauchements et l'appartenance du sujet.
+- L'agent ne voit que ses propres horaires et ses pointages terminés. Le superviseur peut consulter et exporter les pointages du tenant pendant une plage d'au plus 93 jours UTC. Aucune validation de paie n'est sous-entendue.
+- Les nouveaux endpoints sont refusés sans session ou rôle exact ; les tests PostgreSQL isolés ne remplacent pas la revue de révocation des droits TAKATAK en production.

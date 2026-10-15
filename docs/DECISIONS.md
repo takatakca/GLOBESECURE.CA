@@ -12,3 +12,7 @@
 - **2026-10-14 — Livraison vérifiable.** Le SHA compilé figure dans `/api/health.release` ; `package-lock.json`/ `npm ci` sont obligatoires pour reconstruire le même arbre de dépendances.
 - **2026-10-14 — Collecte de renseignements.** Soumissions et candidatures doivent rester fermées sauf si `PRIVACY_POLICY_APPROVED=true` et une messagerie destinataire réelle sont configurés. Aucune collecte de CV par ce formulaire initial ; contenu carrière limité au message d'intérêt.
 - **2026-10-14 — En-têtes réseau.** Ne faire confiance aux en-têtes IP de proxy qu'après configuration explicite d'un proxy contrôlé, sinon limiter globalement les demandes par instance.
+
+- **2026-10-15 — Planification des agents.** L'inscription au registre GlobeSecure est volontaire et découle de l'identité TAKATAK Auth. Elle ne crée pas un CRM maître. Les affectations sont limitées à chaque organisation avec vérification des horaires et audit.
+- **2026-10-15 — Heures.** Les quarts terminés constituent un relevé brut, non une paie approuvée. L'export CSV et les requêtes sont réservés aux rôles autorisés, bornés dans le temps et séparés par tenant. Les champs CSV sont protégés contre les formules.
+- **2026-10-15 — Qualité.** Vérifier les fonctionnalités sensibles dans GitHub Actions contre un PostgreSQL éphémère et au moyen de sessions signées de test. Les identifiants fictifs CI ne remplacent pas une intégration OIDC réelle.

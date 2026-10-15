@@ -43,3 +43,11 @@ Le build intègre le SHA Git dans `GET /api/health` (champ `release`). La CI vé
 Les API de soumission et de recrutement échouent avec HTTP 503 tant que `PRIVACY_POLICY_APPROVED=true` n'a pas été approuvé dans le contexte légal réel et que `RESEND_API_KEY`, `CONTACT_FROM_EMAIL` et le destinataire `CONTACT_TO_EMAIL` ou `CAREERS_TO_EMAIL` ne sont pas configurés. Ne pas définir la variable d'accord par simple commodité.
 
 Les formulaires appliquent une limitation en mémoire par instance. Les en-têtes `X-Real-IP` / `X-Forwarded-For` ne sont utilisés que si `GLOBESECURE_TRUST_PROXY_HEADERS=true`, une fois le proxy de confiance configuré pour retirer les valeurs client non fiables. Sinon le quota est partagé par instance. Déployer un contrôle anti-abus côté proxy/WAF pour une exploitation publique à grande échelle.
+
+## Migrations et validation des nouveaux modules opérationnels (2026-10-15)
+
+Après **sauvegarde vérifiée** et sur l'environnement de staging, appliquer dans l'ordre `db/migrations/001_init.sql` à `005_assignments.sql` sur PostgreSQL 16 ; ne jamais tester les migrations sur une base de production non sauvegardée. La migration 005 introduit `gs_agent_roster` et `gs_assignments`, rattachés aux sujets TAKATAK par tenant. Les droits du compte DB doivent rester minimaux.
+
+`GlobeSecure CI` provisionne un conteneur PostgreSQL 16 éphémère et lance `node scripts/integration-assignments.mjs` après le build. Ce script exige explicitement `GLOBESECURE_ALLOW_TEST_DB=true` et refuse tout hôte distant ou base autre que `globesecure_test`. Il ne doit **jamais** être exécuté sur la production. Les exports d'heures nécessitent l'autorisation de superviseur et ne constituent pas des paies approuvées.
+
+Une validation de production requiert toujours les vrais clients OIDC, les environnements certifiés, les données et permissions réelles, une politique de rétention et une procédure d'approbation des heures.

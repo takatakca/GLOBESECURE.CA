@@ -41,3 +41,7 @@ La référence officielle est [globesecure.ca](https://globesecure.ca). GitHub c
 ## Relève et version compilée
 
 Lire [AGENTS.md](AGENTS.md), [état réel](docs/PROJECT_STATUS.md), [tâches](docs/TASK_QUEUE.md), [décisions](docs/DECISIONS.md) et [handoff](docs/AGENT_HANDOFF.md) avant reprise. Les installations reproductibles utilisent `npm ci`. Une réponse `/api/health` indique le SHA du build (champ `release`). Les soumissions et messages carrière restent fermés avant approbation des conditions de confidentialité et configuration des destinataires réels.
+
+## Affectations et relevés
+
+Le registre des agents, les horaires d'affectation, l'annulation auditée et l'historique de pointage sont implémentés en code (migration `db/migrations/005_assignments.sql`). Les tests de cloisonnement multi-tenant et l'export CSV sont exécutés sur PostgreSQL éphémère dans GitHub Actions. **Non déployé en production, non raccordé à TAKATAK Auth réel et non homologué pour paie.**

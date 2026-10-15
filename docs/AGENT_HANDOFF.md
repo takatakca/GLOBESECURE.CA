@@ -1,49 +1,52 @@
-# AGENT_HANDOFF — reprise GlobeSecure
+# GlobeSecure — Agent handoff
+Dernière mise à jour : **2026-10-15**, branche `main`, dépôt `takatakca/GLOBESECURE.CA`.
 
-**Date :** 2026-10-14. **Dépôt :** `takatakca/GLOBESECURE.CA` ; **branche :** `main`.
+## Dernière tâche terminée
 
-## Dernières tâches terminées
+Gestion d'affectations agent/superviseur et relevés d'heures, terminées dans le dépôt et intégrées dans les deux interfaces opérationnelles.
 
-- Création des cinq documents obligatoires et `AGENTS.md`.
-- Restauration du texte source long et inventaire des neuf images officielles ; tests de parité et garde anti-bot.
-- Ajout d'une vérification de SHA release sur build et staging.
-- Taille des corps JSON bornée sur les endpoints mutatifs.
-- Génération automatique ponctuelle d'un véritable `package-lock.json`, passage à `npm ci`, suppression du workflow temporaire.
-- Ajout d'un contact recrutement (sans CV) désactivé jusqu'à accord sur la confidentialité et configuration Resend.
-- Anti-abus côté serveur sans confiance implicite dans l'adresse IP déclarée ; espaces protégés exclus de l'indexation.
+- Inscription volontaire d'agents TAKATAK par organisation.
+- Affectations planifiées, annulation avec audit, validation contre doubles réservations d'horaires et accès inter-tenant.
+- Pointages terminés pour chaque agent ; consultation/export CSV superviseur, dates UTC bornées ; aucune prétention de paie approuvée.
+- Tests PostgreSQL 16 par GitHub Actions : demandes HTTP authentifiées avec jetons de test contrôlés, deux tenants, restrictions, START/STOP et export.
+- Les cinq documents obligatoires ont été conservés et mis à jour.
 
-## Travaux/commits
+## Commits et vérifications
 
-**Dernier commit de code examiné avant cette relève :** `e2c3a28fe94b3f13d530c3ccd191bcfce44caf0b`. **Dernier commit de tests unitaires validé à cet instant :** `984544f86074d91c0aa6cfe9fe9584478b7b507e` (CI réussie). Le présent commit documentaire aura un SHA postérieur : lire `git log -1` et les Actions pour le déterminer à la reprise.
+**Dernier commit technique testé :** `d9e68ae2a095932b0a6830a2b6f2677e74fdb2fa`.
+**GitHub Actions réussie :** `38735086878`.
+**Commits intermédiaires :** `1b068244` (schéma/validation), `e2fe209e` (APIs), `d135b9e3` (interfaces), `08138754` (tests d'intégration), `83d02657` (service PostgreSQL CI), `2fb82c46` (bornes/CSV), `5d07e8a0` (endpoints pointage), `7c0817dd` (interfaces de relevés), `05c55301` (intégration réelle START/STOP).
+**Attention :** ce document étant poussé dans un commit ultérieur, lire le dernier SHA GitHub et sa CI à la prochaine reprise.
 
-Fichiers modifiés pendant la session : `AGENTS.md`, `docs/{PROJECT_STATUS,TASK_QUEUE,AGENT_HANDOFF,DECISIONS,DEPLOYMENT}.md`, `content/live-site/inventory.json`, `scripts/inventory-site.mjs`, `tests/source-parity.test.mjs`, `lib/{read-json,careers,rate-limit}.mjs`, tests associés, API contact/agent/supervision/carrières, pages et formulaires, `app/robots.js`, `next.config.mjs`, `app/api/health/route.js`, workflows CI/staging ; `package-lock.json` ajouté par GitHub Actions.
+Contrôles réels : `npm ci`, `npm test`, `npm run build`, démarrage standalone, smoke HTTP, tests PostgreSQL migrations 001–005 et scénarios multi-tenant dans `scripts/integration-assignments.mjs`. Runs clés `38734424287`, `38734928291`, `38735086878` tous réussis.
 
-## Vérifications exécutées
+## Fichiers créés et modifiés
 
-- Inspection réelle GitHub : `main`, arborescence, dernières commits, PR/issues (aucun ouvert), workflows.
-- Pipelines GitHub Actions avec installation verrouillée, tests Node et compilation Next.js, serveur standalone HTTP, contrôle du SHA de build ; voir le tableau Actions pour la dernière conclusion.
-- Ancien site actuel non modifié ; site public vérifié par inventaire du 2026-10-14, mais les accès directs récents peuvent renvoyer anti-bot/erreur.
-- Pas de tests réels avec les bases ou comptes utilisateurs, ni vérification MochaHost.
+- `db/migrations/005_assignments.sql`
+- `lib/assignments.mjs`, `lib/timesheets.mjs`
+- `app/api/agent/{roster,assignments,timesheets}/route.js`
+- `app/api/supervision/{assignments,timesheets}/route.js`
+- `app/agent/{AgentAssignments,AgentTimesheets,page.jsx}`
+- `app/supervision/{AssignmentManager,SupervisorTimesheets,page.jsx}`
+- `tests/{assignments,timesheets}.test.mjs`
+- `scripts/integration-assignments.mjs`
+- `.github/workflows/ci.yml`, `app/globals.css`
+- `docs/PROJECT_STATUS.md`, `docs/TASK_QUEUE.md`, `docs/AGENT_HANDOFF.md`, `docs/DEPLOYMENT.md`, `docs/DECISIONS.md`, `docs/AUTH.md`
 
-## Problèmes, secrets, déploiement
+## État réel du déploiement
 
-La production du nouveau code n'est **PAS prouvée**. Le staging GitHub Actions reste **désactivé/ignoré**. Les sources de l'ancienne application MochaHost, secrets OIDC/Resend, PostgreSQL, politiques vie privée et chemins cPanel ne sont pas raccordés. Ne pas écrire ces valeurs dans GitHub.
+Le code a été poussé sur `main`, mais **l'application en ligne n'a pas été remplacée**. Le staging GitHub Actions est resté ignoré (variable d'activation et déploiement non configurés). Impossible de déclarer un déploiement de production réussi. `https://globesecure.ca` demeure la source canonique du contenu.
 
-## Prochaine tâche exacte
+## Erreurs, limites et accès manquants
 
-1. Vérifier le commit `main` après le présent handoff et son dernier run CI ; corriger les éventuels tests en échec.
-2. Chercher les prochains travaux exécutables indépendants dans `docs/TASK_QUEUE.md` (ex. tests d'autorisation tenant / API) et continuer les commits.
-3. Pour débloquer staging : comparer et sauvegarder la vraie installation MochaHost puis configurer les vars/secrets listés dans `docs/DEPLOYMENT.md`; seulement ensuite exécuter le workflow de staging et vérifier la réponse `/api/health.release` attendue.
+- Aucun accès vérifié au code, aux sauvegardes et à la configuration Node de l'installation MochaHost actuelle.
+- Secrets TAKATAK OIDC, PostgreSQL réel, messagerie Resend et staging SSH/TLS requis côté hébergement, sans les copier dans GitHub.
+- Tests d'intégration avec fournisseur OIDC réel à réaliser ; sessions de test ne prouvent pas la configuration d'identité de production.
+- Gestion de paie approuvée, rondes et mandats complets, vie privée, rétention et politique GPS non finalisées.
+- Ne jamais effacer le code historique ni utiliser un force-push.
 
-Ne pas recopier l'ancienne application en l'écrasant, ne pas publier de secrets, ne pas affirmer 100 %.
+## Prochaine action exacte
 
-## Complément de fin de session — 2026-10-14
-
-- **Dernière tâche terminée :** écriture du contrôle HTTP couvrant toutes les pages publiques, les six services, les endpoints privés fermés par défaut, la non-indexation et le SHA compilé.
-- **Dernier commit de code poussé avant ce complément :** `85126fd84400cddc10d53c9e57e46399ad43fdc3`.
-- **Vérification réelle :** workflow `GlobeSecure CI`, run `38625923163`, job `116064920177` : installation `npm ci`, tests unitaires, compilation Next.js, assemblage standalone, smoke HTTP et artefact : **tous réussis**.
-- **Fichiers concernés :** `scripts/smoke-http.mjs`, `.github/workflows/ci.yml` et présents documents de suivi.
-- **Tâche en cours / prochaine action exacte :** rapprocher le code MochaHost historique et configurer staging isolé ; sinon poursuivre les tests d'autorisation tenant via banc d'essai PostgreSQL/OIDC avant exploitation.
-- **Accès nécessaires :** sauvegarde de la source MochaHost, configuration de l'environnement Node, secrets GitHub staging, identifiants de fournisseur TAKATAK Auth, PostgreSQL et messagerie. Ne jamais les commiter.
-- **Déploiement :** rien de ce nouveau code n'est déclaré sur globesecure.ca ; staging non activé, workflow ignoré. `main` n'est pas une preuve de déploiement.
-- **Rappel :** le SHA du dernier commit documentaire sera postérieur à celui du test ; toujours consulter GitHub HEAD et Actions avant la prochaine écriture.
+1. Vérifier `main` et le dernier run CI, sans supposer que le commit de cette relève est passé.
+2. Continuer le premier lot réalisable sans accès externe : **workflow de validation/correction de feuilles de temps** ou gestion structurée des sites/mandats, avec tests d'autorisation.
+3. Pour déploiement, inventorier/sauvegarder MochaHost et configurer staging isolé ; vérifier le SHA `/api/health.release` sur l'URL effective avant toute bascule.
