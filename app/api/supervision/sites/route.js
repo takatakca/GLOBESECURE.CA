@@ -35,15 +35,20 @@ export async function POST(request) {
   }
   const site=parseSite(body);
   if(!site)return NextResponse.json({error:"Nom ou ville du site invalide."},{status:400});
+  const client=await ctx.pool.connect().catch(()=>null);
+  if(!client)return NextResponse.json({error:"Base inaccessible."},{status:503});
   try{
-    const created=await ctx.pool.query(
+    await client.query("BEGIN");
+    const created=await client.query(
       "INSERT INTO gs_sites(tenant_id,name,city,created_by_sub) VALUES($1,$2,$3,$4) RETURNING id,name,city,active,created_at,updated_at",
       [ctx.session.tenant,site.name,site.city,ctx.session.sub]);
-    await ctx.pool.query("INSERT INTO gs_audit(tenant_id,actor_sub,action) VALUES($1,$2,'site.create')",[ctx.session.tenant,ctx.session.sub]);
+    await client.query("INSERT INTO gs_audit(tenant_id,actor_sub,action) VALUES($1,$2,'site.create')",[ctx.session.tenant,ctx.session.sub]);
+    await client.query("COMMIT");
     return NextResponse.json({site:created.rows[0]},{status:201,headers:{"Cache-Control":"no-store"}});
   }catch(error){
+    await client.query("ROLLBACK").catch(()=>{});
     return NextResponse.json({error:error?.code==="23505"?"Un site portant ce nom existe déjà.":"Création du site indisponible."},{status:error?.code==="23505"?409:503});
-  }
+  }finally{client.release();}
 }
 export async function PATCH(request){
   const ctx=await access();

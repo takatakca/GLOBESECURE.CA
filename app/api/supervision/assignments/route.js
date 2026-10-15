@@ -51,7 +51,7 @@ export async function POST(request) {
     let siteLabel=assignment.siteLabel;
     if (assignment.siteId) {
       const site=await client.query(
-        "SELECT name FROM gs_sites WHERE tenant_id=$1 AND id=$2 AND active=true FOR KEY SHARE",
+        "SELECT name FROM gs_sites WHERE tenant_id=$1 AND id=$2 AND active=true FOR SHARE",
         [ctx.session.tenant,assignment.siteId]);
       if(!site.rowCount) {
         await client.query("ROLLBACK");
