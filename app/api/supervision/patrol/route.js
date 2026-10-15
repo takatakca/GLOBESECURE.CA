@@ -3,7 +3,7 @@ import {getSession} from "../../../../lib/auth";
 import {database} from "../../../../lib/db";
 import {requestIsSameSite} from "../../../../lib/origin.mjs";
 import {readJsonBody,bodyFailure} from "../../../../lib/read-json.mjs";
-import {issueCheckpointCode,checkpointDigest,parseCheckpoint,parseCheckpointToggle} from "../../../../lib/patrol.mjs";
+import {issueCheckpointCode,checkpointDigest,parseCheckpoint,parseCheckpointToggle,parseCheckpointRotation} from "../../../../lib/patrol.mjs";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 async function access(){
@@ -64,12 +64,27 @@ export async function PATCH(request){
   if(!requestIsSameSite(request))return NextResponse.json({error:"Origine invalide."},{status:403});
   let body;
   try{body=await readJsonBody(request);}catch(error){const failure=bodyFailure(error);return NextResponse.json({error:failure.message},{status:failure.status});}
+  const rotation=parseCheckpointRotation(body);
   const change=parseCheckpointToggle(body);
-  if(!change)return NextResponse.json({error:"Modification invalide."},{status:400});
+  if(!rotation && !change)return NextResponse.json({error:"Modification invalide."},{status:400});
   const client=await ctx.pool.connect().catch(()=>null);
   if(!client)return NextResponse.json({error:"Base inaccessible."},{status:503});
   try{
     await client.query("BEGIN");
+    if(rotation){
+      const code=issueCheckpointCode();
+      const digest=checkpointDigest(code);
+      const renewed=await client.query(
+        "UPDATE gs_patrol_checkpoints SET code_digest=$3,updated_at=now() WHERE tenant_id=$1 AND id=$2 AND active=true RETURNING id,label,site_id,active",
+        [ctx.session.tenant,rotation.id,digest]);
+      if(!renewed.rowCount){
+        await client.query("ROLLBACK");
+        return NextResponse.json({error:"Point absent, désactivé ou hors de votre organisation."},{status:404});
+      }
+      await client.query("INSERT INTO gs_audit(tenant_id,actor_sub,action) VALUES($1,$2,'patrol.checkpoint.rotate')",[ctx.session.tenant,ctx.session.sub]);
+      await client.query("COMMIT");
+      return NextResponse.json({checkpoint:renewed.rows[0],code,notice:"Ancien code immédiatement désactivé. Le nouveau code n'est affiché qu'une seule fois."},{headers:{"Cache-Control":"no-store"}});
+    }
     const updated=await client.query(
       "UPDATE gs_patrol_checkpoints SET active=$3,updated_at=now() WHERE tenant_id=$1 AND id=$2 AND active IS DISTINCT FROM $3 RETURNING id,label,site_id,active",
       [ctx.session.tenant,change.id,change.active]);
