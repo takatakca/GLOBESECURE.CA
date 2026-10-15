@@ -50,3 +50,13 @@ Le code a été poussé sur `main`, mais **l'application en ligne n'a pas été 
 1. Vérifier `main` et le dernier run CI, sans supposer que le commit de cette relève est passé.
 2. Continuer le premier lot réalisable sans accès externe : **workflow de validation/correction de feuilles de temps** ou gestion structurée des sites/mandats, avec tests d'autorisation.
 3. Pour déploiement, inventorier/sauvegarder MochaHost et configurer staging isolé ; vérifier le SHA `/api/health.release` sur l'URL effective avant toute bascule.
+
+## Complément — décision sur les pointages (2026-10-15)
+
+- **Dernière tâche terminée :** migration `006_shift_approvals.sql`, API superviseur `POST /api/supervision/timesheets/approval`, contrôle de rôle/tenant et état des décisions dans le relevé agent/superviseur/CSV. Un événement append-only documente chaque approbation ou révocation ; le relevé brut n'est pas modifié.
+- **Dernier commit technique vérifié :** `4f224d289ebd8988991a2808c51aa67fabbcd3ba` ; **CI `38735806948` réussie**, y compris PostgreSQL, migrations 001–006, scénarios d'approbation/révocation, build, tests et smoke HTTP. Le présent commit documentaire aura un nouveau SHA.
+- **Fichiers modifiés :** `db/migrations/006_shift_approvals.sql`, `lib/approval.mjs`, `tests/approval.test.mjs`, `app/api/supervision/timesheets/approval/route.js`, API de relevés agent/superviseur, `lib/timesheets.mjs`, interfaces `AgentTimesheets.jsx`/`SupervisorTimesheets.jsx` et `scripts/integration-assignments.mjs`.
+- **Erreur corrigée :** run `38735678832` avait échoué car l'ancien script CI appliquait seulement cinq migrations ; le script applique désormais la sixième avant de tester l'API. Le run `38735806948` est réussi.
+- **Tâche en cours / prochaine action exacte :** examiner la gestion structurée des mandats/sites et les corrections d'heures auditées, puis reprendre le raccordement MochaHost dès que l'accès au code historique et le staging sont vérifiés.
+- **Déploiement :** aucun nouveau déploiement vérifié en production ; staging GitHub Actions ignoré/non configuré. Ne pas publier sans sauvegarde et sans preuve du SHA exposé par `/api/health`.
+- **Accès manquants :** lecture/sauvegarde du site MochaHost, secrets OIDC TAKATAK, PostgreSQL cible, Resend, SSH et URL de staging, politiques vie privée et paie approuvées.

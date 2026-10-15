@@ -69,3 +69,7 @@ Adapter les 30 jours à la politique validée. Le script refuse les valeurs manq
 - Les superviseurs `globesecure_supervisor` voient seulement les agents inscrits de leur tenant et créent/annulent des affectations planifiées. L'API valide la plage (max. 16 heures, 120 jours), les chevauchements et l'appartenance du sujet.
 - L'agent ne voit que ses propres horaires et ses pointages terminés. Le superviseur peut consulter et exporter les pointages du tenant pendant une plage d'au plus 93 jours UTC. Aucune validation de paie n'est sous-entendue.
 - Les nouveaux endpoints sont refusés sans session ou rôle exact ; les tests PostgreSQL isolés ne remplacent pas la revue de révocation des droits TAKATAK en production.
+
+## Approbation des heures par superviseur
+
+Après migration `006_shift_approvals.sql`, l'API d'approbation exige `globesecure_supervisor`, l'origine du site, un ID de quart valide et l'existence d'un quart terminé au sein du même tenant. Les actions `approve` et `revoke` sont journalisées séparément. Un agent consulte uniquement le statut de ses propres heures. Le CSV conserve le statut pour éviter de confondre pointages bruts et périodes approuvées.

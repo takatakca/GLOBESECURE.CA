@@ -14,7 +14,7 @@ Date : 2026-10-15. Poursuivre les tâches indépendantes malgré les dépendance
 | P1 | À réaliser | Modifier/réaffecter les affectations avec audit | Permissions, prévention de chevauchement, notifications |
 | P1 | À réaliser | Mandats, sites protégés et demandes clients | Gestion métier liée au tenant avec vérification |
 | P1 | À réaliser | Ronde QR/NFC, passages et preuves d'inspection | API et UI sécurisées, tests matériels |
-| P1 | À réaliser | Feuilles d'heures approuvées et corrections | Validation superviseur, audit, heures export paie |
+| P1 | Partiel et testé en CI | Validation/révocation des pointages avec audit | Approbations en DB et interface réussies ; restent corrections d'heures, règles métier et export paie homologué |
 | P1 | À réaliser | Gestion du personnel, formations, permis | Gestion autorisée sans CRM maître parallèle |
 | P1 | À réaliser | Candidatures CV sécurisées | Accord légal, stockage chiffré, suppression, notifications |
 | P1 | À réaliser | UX, accessibilité, tests de charge et E2E | Tests sur appareils/navigateurs réels |

@@ -45,3 +45,5 @@ Lire [AGENTS.md](AGENTS.md), [état réel](docs/PROJECT_STATUS.md), [tâches](do
 ## Affectations et relevés
 
 Le registre des agents, les horaires d'affectation, l'annulation auditée et l'historique de pointage sont implémentés en code (migration `db/migrations/005_assignments.sql`). Les tests de cloisonnement multi-tenant et l'export CSV sont exécutés sur PostgreSQL éphémère dans GitHub Actions. **Non déployé en production, non raccordé à TAKATAK Auth réel et non homologué pour paie.**
+
+Les heures peuvent maintenant recevoir une approbation/révocation explicite par un superviseur dans le code. Ces décisions sont auditées et tenant-scopées (`006_shift_approvals.sql`) ; l'export ne calcule pas automatiquement une paie ni les corrections légales.

@@ -14,7 +14,7 @@ Le site **https://globesecure.ca** est la source officielle du contenu commercia
 - Pointage START/STOP volontaire avec localisation consentie et révocable ; incidents et journal d'audit.
 - Espaces superviseur/client avec accès par tenant et publication manuelle de rapports.
 - **Nouveau :** inscription volontaire des agents au registre GlobeSecure (sujets issus de TAKATAK, non un registre d'identités maître) ; création/annulation d'affectations planifiées ; anti-chevauchement et limite de 16 heures par affectation.
-- **Nouveau :** historique de pointages terminés des agents, consultation superviseur et export CSV protégé contre les formules, sur une période bornée et sans export silencieusement tronqué.
+- **Nouveau :** historique de pointages terminés des agents, consultation superviseur et export CSV protégé contre les formules, sur une période bornée et sans export silencieusement tronqué. Approbation/révocation superviseur de chaque quart terminé avec historique d'événements append-only et contrôles d'accès par organisation.
 - Migrations PostgreSQL 001–005, tests unitaires, contrôle HTTP des pages publiques, API privées fermées, build Next.js standalone et contrôle du SHA `/api/health.release`.
 - Intégration GitHub Actions avec PostgreSQL 16 jetons de test signés : inscriptions, rôles, tenants indépendants, conflits horaires, annulation inter-tenant interdite, START/STOP, pointages et CSV.
 
@@ -35,3 +35,7 @@ Le site **https://globesecure.ca** est la source officielle du contenu commercia
 6. Surveillance, rotation des secrets, sauvegardes automatisées, sécurité applicative complète, rétention programmée.
 
 **Critère de fin :** aucune mention « 100 % » ou « en production » avant preuves de déploiement, de fonctionnement des services et de sécurité.
+
+## Validation des pointages (2026-10-15)
+
+La migration `006_shift_approvals.sql` relie les décisions au couple `tenant_id`/`shift_id` par clé étrangère. Le statut `unreviewed`, `approved` ou `revoked` apparaît dans les relevés et le CSV. L'API de décision enregistre le superviseur et un événement immuable à chaque changement ; aucune modification de la durée effective ni calcul de paie n'est effectué. **Run CI `38735806948` réussi** : tests PostgreSQL pour l'approbation, la révocation et le refus d'accès inter-tenant.

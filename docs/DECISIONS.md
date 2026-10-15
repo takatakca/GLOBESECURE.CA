@@ -16,3 +16,5 @@
 - **2026-10-15 — Planification des agents.** L'inscription au registre GlobeSecure est volontaire et découle de l'identité TAKATAK Auth. Elle ne crée pas un CRM maître. Les affectations sont limitées à chaque organisation avec vérification des horaires et audit.
 - **2026-10-15 — Heures.** Les quarts terminés constituent un relevé brut, non une paie approuvée. L'export CSV et les requêtes sont réservés aux rôles autorisés, bornés dans le temps et séparés par tenant. Les champs CSV sont protégés contre les formules.
 - **2026-10-15 — Qualité.** Vérifier les fonctionnalités sensibles dans GitHub Actions contre un PostgreSQL éphémère et au moyen de sessions signées de test. Les identifiants fictifs CI ne remplacent pas une intégration OIDC réelle.
+
+- **2026-10-15 — Approbation non destructive.** Les superviseurs peuvent approuver ou révoquer le statut d'un quart terminé sans changer les horaires bruts. Les événements de décision sont append-only, liés au tenant et au quart ; un statut approuvé n'est pas encore une intégration de paie.

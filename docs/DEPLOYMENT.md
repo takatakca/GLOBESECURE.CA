@@ -51,3 +51,7 @@ Après **sauvegarde vérifiée** et sur l'environnement de staging, appliquer da
 `GlobeSecure CI` provisionne un conteneur PostgreSQL 16 éphémère et lance `node scripts/integration-assignments.mjs` après le build. Ce script exige explicitement `GLOBESECURE_ALLOW_TEST_DB=true` et refuse tout hôte distant ou base autre que `globesecure_test`. Il ne doit **jamais** être exécuté sur la production. Les exports d'heures nécessitent l'autorisation de superviseur et ne constituent pas des paies approuvées.
 
 Une validation de production requiert toujours les vrais clients OIDC, les environnements certifiés, les données et permissions réelles, une politique de rétention et une procédure d'approbation des heures.
+
+## Migration 006 et décisions des superviseurs
+
+Après les cinq premières migrations, appliquer `db/migrations/006_shift_approvals.sql` uniquement sur une base sauvegardée/staging. Les approbations sont tenant-scopées via clé étrangère composite. L'API `/api/supervision/timesheets/approval` n'accepte que le rôle `globesecure_supervisor` sur un quart déjà terminé du même tenant ; chaque transition est inscrite dans `gs_shift_approval_events` (historique append-only) et `gs_audit`. Ne pas utiliser l'export CSV comme fichier de paie tant que les politiques de correction, double signature éventuelle, gestion d'arrondis, déductions et contrôles légaux n'ont pas été approuvés.
