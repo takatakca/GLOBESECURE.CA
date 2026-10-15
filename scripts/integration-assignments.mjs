@@ -58,12 +58,14 @@ async function main() {
   const adminA=await session("supervisor-alpha","tenant-a","globesecure_supervisor");
   const adminB=await session("supervisor-beta","tenant-b","globesecure_supervisor");
   const clientA=await session("client-alpha","tenant-a","globesecure_client");
+  const agentC=await session("agent-gamma","tenant-a","globesecure_agent");
   assert.equal((await invoke("/api/supervision/assignments",agentA)).status,403,"agents cannot supervise");
   assert.equal((await invoke("/api/agent/roster",agentA,"POST")).status,200,"agent A registers");
   assert.equal((await invoke("/api/agent/roster",agentB,"POST")).status,200,"agent B registers");
   const roster=await invoke("/api/supervision/assignments",adminA);
   assert.equal(roster.status,200);
   assert.deepEqual(roster.payload.roster.map(x=>x.agent_sub),["agent-alpha"],"must not leak other tenant roster");
+  assert.equal((await invoke("/api/agent/roster",agentC,"POST")).status,200,"second agent registers in tenant A");
   // Sites are owned by their tenant; supervisors do not gain another tenant's sites.
   assert.equal((await invoke("/api/supervision/sites",agentA)).status,403);
   const siteResult=await invoke("/api/supervision/sites",adminA,"POST",{name:"Édifice Alpha",city:"Montréal"});
@@ -101,6 +103,10 @@ async function main() {
   assert.equal(changeHistory.rows[0].tenant_id,"tenant-a");
   assert.equal(changeHistory.rows[0].actor_sub,"supervisor-alpha");
   assert.equal(changeHistory.rows[0].current_values.title,"Surveillance du soir");
+  const gammaSchedule={...payload,agentSub:"agent-gamma",title:"Garde en parallèle",startsAt:revisedStarts,endsAt:revisedEnds};
+  const gammaCreated=await invoke("/api/supervision/assignments",adminA,"POST",gammaSchedule);
+  assert.equal(gammaCreated.status,201,JSON.stringify(gammaCreated.payload));
+  assert.equal((await invoke("/api/supervision/assignments/reschedule",adminA,"POST",{...reschedule,agentSub:"agent-gamma"})).status,409,"reassignment cannot double-book the new agent");
   assert.equal((await invoke("/api/agent/assignments",clientA)).status,403,"client cannot see agent private schedules");
   const assigned=await invoke("/api/agent/assignments",agentA);
   assert.equal(assigned.status,200);
@@ -110,6 +116,14 @@ async function main() {
   assert.equal((await invoke("/api/supervision/assignments",adminB,"PATCH",{id,action:"cancel"})).status,404,"cross-tenant cancellation denied");
   assert.equal((await invoke("/api/supervision/assignments",adminA,"PATCH",{id,action:"cancel"})).status,200);
   assert.equal((await invoke("/api/agent/assignments",agentA)).payload.assignments[0].status,"cancelled");
+  const reassign=await invoke("/api/supervision/assignments/reschedule",adminA,"POST",{
+    ...gammaSchedule,assignmentId:gammaCreated.payload.assignment.id,agentSub:"agent-alpha"
+  });
+  assert.equal(reassign.status,200,JSON.stringify(reassign.payload));
+  assert.equal(reassign.payload.assignment.agent_sub,"agent-alpha");
+  assert.equal((await invoke("/api/agent/assignments",agentC)).payload.assignments.length,0,"previous assignee no longer sees reassigned work");
+  assert.equal((await invoke("/api/agent/assignments",agentA)).payload.assignments.length,2,"new assignee sees reassigned work");
+
   assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:false})).status,200);
   assert.equal((await invoke("/api/supervision/assignments",adminA,"POST",payload)).status,404,"inactive site cannot be assigned");
   assert.equal((await invoke("/api/supervision/sites",adminA,"PATCH",{id:siteA.id,action:"setActive",active:true})).status,200);
