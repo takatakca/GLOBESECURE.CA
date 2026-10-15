@@ -10,7 +10,7 @@ Le module de **rondes par points de contrôle** relie les sites `gs_sites`, les 
 - Migration `010_patrol_checkpoints.sql` : codes aléatoires de 192 bits, seul SHA-256 stocké, FK composites (`tenant_id`, `site_id`/`shift_id`), limite d'un passage par point et quart.
 - Supervision `/api/supervision/patrol` et `PatrolManager.jsx` : créer, activer/désactiver un point ; présenter le code **une seule fois** ; visualiser les derniers passages du même tenant.
 - Agent `/api/agent/patrol` et `AgentPatrol.jsx` : saisir le code manuellement ou le lire depuis un QR existant via l'API navigateur `BarcodeDetector`, quand elle existe ; valider quart actif, site actif et affectation temporelle au site ; l'agent voit uniquement ses passages.
-- Ce système établit la **possession d'un code**, et **ne garantit pas la présence physique** : un code statique peut être copié. Aucune nouvelle localisation ou photo n'est collectée. L'outil ne génère pas encore directement une image QR ni une étiquette NFC; impression/encodage hors ligne et revue du modèle de preuve restent nécessaires.
+- Ce système établit la **possession d'un code**, et **ne garantit pas la présence physique** : un code statique peut être copié. Aucune nouvelle localisation ou photo n'est collectée. Les images QR sont désormais générées et imprimées localement sans service externe; l'intégration NFC et la revue du modèle de preuve restent nécessaires.
 
 ## Source et travaux conservés
 
@@ -29,7 +29,7 @@ Le site commercial `https://globesecure.ca` demeure la référence officielle du
 - GitHub staging `.github/workflows/staging.yml` : **désactivé / exécutions ignorées**. Aucun déploiement vérifié du nouveau code sur `globesecure.ca`; ne pas toucher au document root existant.
 - Aucun accès direct vérifié au code et aux sauvegardes de l'ancien hébergement MochaHost. Pas de validation d'un vrai login TAKATAK, d'une base PostgreSQL hors CI, d'un envoi Resend ou du certificat/port Node staging.
 - Activation de la collecte des données clients/candidats conditionnée à `PRIVACY_POLICY_APPROVED=true` seulement après approbation réelle; GPS, rétention des rondes et preuves de passage à valider.
-- Autres modules ouverts : mandats contractuels, notifications, politiques de ronde et preuve de présence, étiquettes QR/NFC auto-générées, paie réglementaire, conservation/purge, recrutement avec CV sécurisé, tests appareils réels.
+- Autres modules ouverts : mandats contractuels, notifications, politiques de ronde et preuve de présence, étiquettes NFC et exigences de preuve terrain, paie réglementaire, conservation/purge, recrutement avec CV sécurisé, tests appareils réels.
 
 ## Accès nécessaires (sans divulguer de secrets)
 
@@ -38,7 +38,7 @@ Inventaire et sauvegarde vérifiés MochaHost, configuration du staging Node 22 
 ## Prochaine action exacte
 
 1. Vérifier `git log -1`, le dernier run GitHub CI ainsi que les issues/PR ; corriger une éventuelle erreur.
-2. Pour un chantier exécutable indépendant du serveur : compléter la rotation de codes de ronde / étiquettes QR hors ligne et tests de concurrence/accès, ou poursuivre les mandats et approbations métier, puis pousser un commit testé.
+2. Pour un chantier exécutable indépendant du serveur : compléter les rondes planifiées, alertes et tests de terrain, ou poursuivre les mandats et approbations métier, puis pousser un commit testé.
 3. Dès qu'un accès MochaHost est validé : sauvegarder/inventorier la production existante, préparer staging strictement isolé, appliquer `010_patrol_checkpoints.sql` après 009 sur DB sauvegardée avec `scripts/migrate-db.mjs`, connecter OIDC réel et vérifier `/api/health.release` sur HTTPS avant toute bascule. Sans ces étapes, **pas de publication production**.
 
 Le dépôt GitHub préserve le travail entre sessions; aucune reprise automatique n'est active sans orchestrateur externe autorisé.

@@ -22,7 +22,7 @@ CI `38791376787` sur `82f2fd1b1a33acda89bb5332e8c3fc525e7a0faf` : **succès**, i
 
 1. Sauvegarder et comparer l'installation MochaHost actuelle; configurer staging isolé, Node/TLS, secrets et base réelle.
 2. Vérifier TAKATAK Auth OIDC, permissions par client, consentement, protection des données et politiques de conservation.
-3. Les codes de rondes statiques peuvent être transférés/copiés : ils ne constituent pas une preuve de présence physique; pas de générateur d'étiquettes QR/NFC embarqué ni de vérification anti-rejeu entre quarts.
+3. Les codes de rondes statiques peuvent être transférés/copiés : ils ne constituent pas une preuve de présence physique; génération QR locale disponible; support NFC et protection renforcée contre le partage de codes entre quarts restent à réaliser.
 4. Mandats commerciaux/contrats, paie, validations réglementaires, recrutement avec CV, notifications, audits et tests appareils à compléter.
 
 **Critère de fin :** compilation verte seule ≠ 100 %. Les services tiers, données réelles, sécurité et déploiement doivent être validés.
