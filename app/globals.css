@@ -247,3 +247,8 @@ h1 em,h2 em{font-style:normal;color:var(--lime);font-weight:400}
 .assignment-history article{margin:12px 0;padding:15px 0;border-top:1px solid var(--line)}
 .assignment-history article p{margin:7px 0;overflow-wrap:anywhere;font-size:13px;color:var(--muted)}
 .assignment-history article strong{color:var(--text)}
+
+.patrol-code{border:1px solid var(--line);margin-top:22px;padding:22px;background:#081b22}
+.patrol-code code{display:block;padding:12px;margin:12px 0;overflow-wrap:anywhere;user-select:all;font-size:16px}
+.patrol-code .button{margin:4px}
+.patrol-camera{display:block;max-width:100%;width:450px;max-height:340px;object-fit:cover;margin:18px auto;border:1px solid var(--line);border-radius:8px;background:#0b1a24}
