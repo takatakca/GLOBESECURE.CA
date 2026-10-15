@@ -35,9 +35,9 @@ async function invoke(path,roleCookie,method="GET",body) {
 async function main() {
   const conn=await pool.connect();
   try {
-    for(let n=1;n<=8;n++) {
+    for(let n=1;n<=9;n++) {
       const file="db/migrations/"+String(n).padStart(3,"0")+
-        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql","_assignment_changes.sql"][n-1];
+        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql","_sites.sql","_assignment_changes.sql","_client_requests.sql"][n-1];
       await conn.query(await readFile(file,"utf8"));
       console.log("Applied "+file);
     }
@@ -58,6 +58,8 @@ async function main() {
   const adminA=await session("supervisor-alpha","tenant-a","globesecure_supervisor");
   const adminB=await session("supervisor-beta","tenant-b","globesecure_supervisor");
   const clientA=await session("client-alpha","tenant-a","globesecure_client");
+  const clientB=await session("client-beta","tenant-b","globesecure_client");
+  const clientC=await session("client-charlie","tenant-a","globesecure_client");
   const agentC=await session("agent-gamma","tenant-a","globesecure_agent");
   assert.equal((await invoke("/api/supervision/assignments",agentA)).status,403,"agents cannot supervise");
   assert.equal((await invoke("/api/agent/roster",agentA,"POST")).status,200,"agent A registers");
@@ -165,7 +167,34 @@ async function main() {
   assert.ok(content.includes("agent-alpha"));
   assert.ok(!content.includes("agent-beta"));
   assert.equal((await invoke("/api/supervision/timesheets?start=1900-01-01&end=2026-10-15",adminA)).status,400);
-  console.log("Integration passed: auth roles, tenant isolation, assignments, pointage and safe export.");
+  // Authenticated service requests: own creator visibility and tenant-bound triage.
+  const requestBody={
+    service:"chantiers",title:"Surveillance de chantier",
+    description:"Veuillez prévoir un agent pendant les travaux de rénovation de la bâtisse.",
+    consent:true,tenantId:"forged-tenant"
+  };
+  assert.equal((await invoke("/api/client/requests",agentA,"POST",requestBody)).status,403);
+  assert.equal((await invoke("/api/client/requests",clientA,"POST",{...requestBody,consent:false})).status,400);
+  const submitted=await invoke("/api/client/requests",clientA,"POST",requestBody);
+  assert.equal(submitted.status,201,JSON.stringify(submitted.payload));
+  const requestId=submitted.payload.request.id;
+  assert.equal((await invoke("/api/client/requests",clientA)).payload.requests.length,1);
+  assert.equal((await invoke("/api/client/requests",clientB)).payload.requests.length,0,"tenant B cannot see A request");
+  assert.equal((await invoke("/api/client/requests",clientC)).payload.requests.length,0,"other client in same tenant cannot see A request");
+  assert.equal((await invoke("/api/supervision/requests",adminB)).payload.requests.length,0,"tenant B supervisor must not see A requests");
+  assert.equal((await invoke("/api/supervision/requests",adminA)).payload.requests.length,1);
+  assert.equal((await invoke("/api/supervision/requests",clientA)).status,403);
+  assert.equal((await invoke("/api/supervision/requests",adminB,"PATCH",{id:requestId,action:"acknowledge"})).status,409,"cross-tenant update must fail");
+  assert.equal((await invoke("/api/supervision/requests",adminA,"PATCH",{id:requestId,action:"close"})).status,409,"cannot close a request before acknowledgement");
+  assert.equal((await invoke("/api/supervision/requests",adminA,"PATCH",{id:requestId,action:"acknowledge"})).status,200);
+  assert.equal((await invoke("/api/supervision/requests",adminA,"PATCH",{id:requestId,action:"acknowledge"})).status,409,"no duplicate transitions");
+  assert.equal((await invoke("/api/client/requests",clientA)).payload.requests[0].status,"acknowledged");
+  assert.equal((await invoke("/api/supervision/requests",adminA,"PATCH",{id:requestId,action:"close"})).status,200);
+  assert.equal((await invoke("/api/client/requests",clientA)).payload.requests[0].status,"closed");
+  const requestEvents=await pool.query("SELECT action,tenant_id FROM gs_client_request_events WHERE request_id=$1 ORDER BY id",[requestId]);
+  assert.deepEqual(requestEvents.rows.map(e=>e.action),["acknowledge","close"],"request lifecycle must be append-only");
+  assert.ok(requestEvents.rows.every(e=>e.tenant_id==="tenant-a"));
+  console.log("Integration passed: auth roles, tenant isolation, assignments, pointage, approval and client service requests.");
 }
 try {await main();}
 finally {

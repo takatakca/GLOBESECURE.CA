@@ -71,6 +71,7 @@ jobs:
           TAKATAK_OIDC_ISSUER: https://oidc.integration.invalid
           TAKATAK_OIDC_CLIENT_ID: globesecure-ci
           SESSION_SECRET: ci-test-not-for-production-01234567890123456789
+          PRIVACY_POLICY_APPROVED: 'true'
         run: node scripts/integration-assignments.mjs
       - uses: actions/upload-artifact@v4
         with:
