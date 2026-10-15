@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
+import CheckpointQr from "./CheckpointQr";
 const when=value=>new Date(value).toLocaleString("fr-CA",{dateStyle:"medium",timeStyle:"short"});
 export default function PatrolManager(){
   const [sites,setSites]=useState([]);
@@ -78,7 +79,9 @@ export default function PatrolManager(){
     </form>
     {newCode&&<div className="patrol-code" role="status">
       <strong>Code de contrôle — affichage unique</strong><code>{newCode}</code>
-      <p>Conservez-le maintenant : il ne sera plus récupérable après fermeture. Il peut être imprimé comme texte ou transformé en QR par votre outil d'impression hors ligne.</p>
+      <p>Ce QR est calculé directement dans votre navigateur, sans service externe. Il contient le code confidentiel; imprimez-le uniquement pour le lieu protégé. Une photo du QR pourrait permettre un passage fictif.</p>
+      <CheckpointQr code={newCode} />
+      <button type="button" className="button button-outline button-small" onClick={()=>window.print()}>Imprimer le QR</button>
       <button type="button" className="button button-outline button-small" onClick={async()=>{
         try{await navigator.clipboard.writeText(newCode);setFeedback("Code copié.");}catch{setFeedback("Copie impossible : sélectionnez le code affiché.");}
       }}>Copier le code</button>
