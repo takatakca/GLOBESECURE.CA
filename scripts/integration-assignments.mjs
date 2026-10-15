@@ -35,9 +35,9 @@ async function invoke(path,roleCookie,method="GET",body) {
 async function main() {
   const conn=await pool.connect();
   try {
-    for(let n=1;n<=5;n++) {
+    for(let n=1;n<=6;n++) {
       const file="db/migrations/"+String(n).padStart(3,"0")+
-        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql"][n-1];
+        ["_init.sql","_incidents.sql","_tracking_consent.sql","_client_reports.sql","_assignments.sql","_shift_approvals.sql"][n-1];
       await conn.query(await readFile(file,"utf8"));
       console.log("Applied "+file);
     }
@@ -94,6 +94,18 @@ async function main() {
   assert.equal(adminReport.status,200);
   assert.equal(adminReport.payload.entries.length,1);
   assert.equal((await invoke("/api/supervision/timesheets",adminB)).payload.entries.length,0,"tenant B cannot inspect tenant A hours");
+  const shiftId=mine.payload.entries[0].id;
+  assert.equal(mine.payload.entries[0].review_status,"unreviewed");
+  assert.equal((await invoke("/api/supervision/timesheets/approval",agentA,"POST",{shiftId,action:"approve"})).status,403);
+  assert.equal((await invoke("/api/supervision/timesheets/approval",adminB,"POST",{shiftId,action:"approve"})).status,404,"cross-tenant approval denied");
+  assert.equal((await invoke("/api/supervision/timesheets/approval",adminA,"POST",{shiftId,action:"approve",note:"Vérifié en CI"})).status,200);
+  assert.equal((await invoke("/api/supervision/timesheets/approval",adminA,"POST",{shiftId,action:"approve"})).status,409,"duplicate decision denied");
+  assert.equal((await invoke("/api/agent/timesheets",agentA)).payload.entries[0].review_status,"approved");
+  assert.equal((await invoke("/api/supervision/timesheets/approval",adminA,"POST",{shiftId,action:"revoke",note:"Correction demandée"})).status,200);
+  assert.equal((await invoke("/api/agent/timesheets",agentA)).payload.entries[0].review_status,"revoked");
+  const events=await pool.query("SELECT action,tenant_id FROM gs_shift_approval_events WHERE shift_id=$1 ORDER BY id",[shiftId]);
+  assert.deepEqual(events.rows.map(e=>e.action),["approve","revoke"],"approval history is append-only");
+  assert.ok(events.rows.every(e=>e.tenant_id==="tenant-a"));
   const csv=await fetch(base+"/api/supervision/timesheets?format=csv",{headers:{Cookie:adminA},signal:AbortSignal.timeout(10000)});
   assert.equal(csv.status,200);
   assert.match(csv.headers.get("content-type")||"",/text\/csv/);
