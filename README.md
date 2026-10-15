@@ -51,3 +51,8 @@ Les heures peuvent maintenant recevoir une approbation/révocation explicite par
 ## Sites sécurisés
 
 La supervision gère maintenant des sites privés par organisation (`007_sites.sql`). Les affectations les référencent via une clé étrangère liée au tenant et les nouveaux horaires utilisent le nom de site enregistré côté serveur. Staging et production ne sont pas encore validés : voir `docs/AGENT_HANDOFF.md`.
+
+
+## Réaffectation et journal de modifications
+
+Les superviseurs peuvent modifier les horaires et réaffecter les quarts futurs avec une validation anti-chevauchement et un journal append-only (`008_assignment_changes.sql`). La supervision permet de consulter le journal tenant-scopé. Ces fonctions sont testées sur PostgreSQL isolé en CI; la version du site en production n'est pas confirmée comme mise à jour.

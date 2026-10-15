@@ -47,3 +47,10 @@ Migration additive `007_sites.sql` : sites privés par tenant (`gs_sites`) et cl
 **Tests GitHub Actions :** `38773870422` réussi : migration 007, deux organisations, contrôle des rôles, listes tenant-isolées, noms uniques par tenant, protection contre les sites externes ou inactifs, conservation de la dénomination serveur. Le correctif de concurrence `ca5b3d626607e6c03539501d9530e5061e2a66f4` est à vérifier dans son propre run CI.
 
 **Non déployé sur globesecure.ca** : le staging MochaHost ne dispose pas de configuration validée ni d'une sauvegarde prouvée.
+
+
+## Modification / réaffectation des quarts (2026-10-15)
+
+Migration `008_assignment_changes.sql` : historique immuable des changements d'affectation, associant `tenant_id`, `assignment_id`, superviseur et valeurs avant/après. L'endpoint `POST /api/supervision/assignments/reschedule` est limité au rôle explicite superviseur et aux quarts futurs actifs; il refuse les conflits d'agents et vérifie les sites actifs de l'organisation. Un endpoint de consultation `GET /api/supervision/assignments/history?id=...` permet de voir la trace des modifications du même tenant. L'interface de supervision présente la modification, la réaffectation et la consultation du journal.
+
+**Tests réels GitHub Actions :** `38774714270` réussi pour le scénario PostgreSQL de réaffectation (y compris refus de double réservation et absence d'accès inter-tenant). Les commits ultérieurs de consultation du journal/UI nécessitent le contrôle de leur dernière CI. Les fonctions ne sont pas déployées sur le site réel.

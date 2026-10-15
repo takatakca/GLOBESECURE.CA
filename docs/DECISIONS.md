@@ -23,3 +23,7 @@
 
 - **2026-10-15 — Sites de sécurité internes.** Les sites créés localement sont des lieux opérationnels rattachés à `tenant_id`, jamais des clients ou organisations maîtres. Ils restent indépendants du CRM central TAKATAK. La désactivation est réversible et ne détruit ni l'historique ni les affectations existantes.
 - **2026-10-15 — Source serveur et concurrence.** Pour une affectation liée à un site, le nom est repris exclusivement de la DB avec vérification du tenant et du statut actif sous verrou; pas de confiance accordée au libellé du navigateur. Audit de création des sites transactionnel.
+
+
+- **2026-10-15 — Modifications des quarts.** Une modification d'un quart futur ne supprime ni ne réécrit l'historique des changements. Chaque opération autorisée ajoute un événement `gs_assignment_changes`, tenant-scopé; les horaires qui se chevauchent sont refusés, et les sites doivent être actifs au moment de l'opération.
+- **2026-10-15 — Accès au journal.** Le journal d'affectation est réservé aux superviseurs de l'organisation. Les agents voient leurs propres affectations actualisées; les clients ne peuvent pas consulter ce journal interne.

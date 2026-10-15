@@ -61,3 +61,10 @@ Après les cinq premières migrations, appliquer `db/migrations/006_shift_approv
 Appliquer `db/migrations/007_sites.sql` **après la migration 006**, sur base sauvegardée et en staging. Elle ajoute `gs_sites` (noms uniques par organisation, statut actif/inactif, auteur de création) et un `site_id` facultatif à `gs_assignments` avec FK composite `tenant_id,site_id`. Les anciennes affectations restent inchangées. Les nouveaux horaires liés à un site conservent également un libellé historique.
 
 Les superviseurs gèrent les sites via `/api/supervision/sites` (GET, POST, PATCH); le rôle agent et le rôle client n'y ont pas accès. Désactiver un site bloque sa sélection pour toute **nouvelle** affectation mais n'annule pas les anciennes. Appliquer les migrations sur une base isolée, valider les rôles réels et les accès PostgreSQL avant la publication. Le staging sur MochaHost reste non provisionné selon les derniers états observés.
+
+
+## Migration 008 et suivi des affectations modifiées
+
+Après sauvegarde vérifiée et migration 007, appliquer `db/migrations/008_assignment_changes.sql` en staging. La table `gs_assignment_changes` contient un historique append-only de chaque modification d'affectation (paramètres précédents et nouveaux, superviseur, tenant). Le code n'effectue aucune modification de ce journal après insertion. Revoir les droits SQL applicatifs et les politiques de rétention avant production.
+
+Le workflow CI utilise `scripts/integration-assignments.mjs` avec un PostgreSQL éphémère pour vérifier le refus d'une réaffectation vers un agent déjà occupé, l'acceptation d'une réaffectation autorisée, l'isolement des organisations, les rôles et les écritures d'audit. Une compilation CI ne remplace pas le test en staging réel avec TAKATAK Auth.

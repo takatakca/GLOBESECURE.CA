@@ -77,3 +77,8 @@ Après migration `006_shift_approvals.sql`, l'API d'approbation exige `globesecu
 ## Sites opérationnels (migration 007)
 
 L'API `/api/supervision/sites` exige le rôle exact `globesecure_supervisor`. Le tenant est dérivé de la session et ne peut pas être fourni par le navigateur. La création, activation ou désactivation des sites est auditée. Les agents voient le libellé de leurs propres affectations, et non l'annuaire complet des sites. Les sites sont des objets opérationnels locaux; ils ne créent ni compte utilisateur ni entreprise dans TAKATAK.
+
+
+## Réaffectation et historique des changements
+
+Après migration `008_assignment_changes.sql`, seule une session `globesecure_supervisor` peut modifier un quart futur via `/api/supervision/assignments/reschedule`. Le serveur vérifie le tenant du quart, l'appartenance de l'agent, le site actif, les conflits et l'origine de la requête. La lecture du journal `/api/supervision/assignments/history` exige le même rôle et le tenant exact; elle n'expose pas le journal aux clients ou agents. Les modifications sont historisées avant le commit transactionnel.

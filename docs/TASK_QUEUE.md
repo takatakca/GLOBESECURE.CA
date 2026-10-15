@@ -23,3 +23,6 @@ Date : 2026-10-15. Poursuivre les tâches indépendantes malgré les dépendance
 Le prochain agent doit lire `docs/AGENT_HANDOFF.md`, identifier le SHA `main` et la dernière CI, puis prendre le premier chantier indépendant autorisé. Le pipeline ne déploie pas la production actuelle sans vérification des accès et des sauvegardes.
 
 - **2026-10-15 :** registre opérationnel des sites créé (`007_sites.sql`, API et interface supervision), archivage réversible et lien sécurisé aux affectations. CI PostgreSQL `38773870422` réussie. La gestion complète du contrat client et de la tarification n'est **pas** réalisée.
+
+
+- **2026-10-15 :** modification/réaffectation d'affectations futures et historique append-only livrés en code (`008_assignment_changes.sql`, APIs et UI). Tests PostgreSQL de réaffectation réussis, CI `38774714270`. Restent notamment notifications des agents, politique d'approbation des modifications et validations réelles.
