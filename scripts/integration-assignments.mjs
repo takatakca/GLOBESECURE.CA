@@ -81,7 +81,27 @@ async function main() {
   assert.equal((await invoke("/api/supervision/assignments",adminB,"PATCH",{id,action:"cancel"})).status,404,"cross-tenant cancellation denied");
   assert.equal((await invoke("/api/supervision/assignments",adminA,"PATCH",{id,action:"cancel"})).status,200);
   assert.equal((await invoke("/api/agent/assignments",agentA)).payload.assignments[0].status,"cancelled");
-  console.log("Integration passed: auth roles, enrollment, tenant isolation, overlaps and cancellation.");
+  // Exercise real clock-in and clock-out, then verify isolated time records.
+  const loc={latitude:45.5,longitude:-73.6,accuracy:12};
+  assert.equal((await invoke("/api/agent/shifts",agentA,"POST",{action:"start",consent:true,consentVersion:"2026-10-14",position:loc})).status,200);
+  assert.equal((await invoke("/api/agent/shifts",agentA,"POST",{action:"stop"})).status,200);
+  const mine=await invoke("/api/agent/timesheets",agentA);
+  assert.equal(mine.status,200,JSON.stringify(mine.payload));
+  assert.equal(mine.payload.entries.length,1);
+  assert.equal((await invoke("/api/agent/timesheets",agentB)).payload.entries.length,0,"other tenant cannot see timesheets");
+  assert.equal((await invoke("/api/supervision/timesheets",clientA)).status,403,"client cannot export staff hours");
+  const adminReport=await invoke("/api/supervision/timesheets",adminA);
+  assert.equal(adminReport.status,200);
+  assert.equal(adminReport.payload.entries.length,1);
+  assert.equal((await invoke("/api/supervision/timesheets",adminB)).payload.entries.length,0,"tenant B cannot inspect tenant A hours");
+  const csv=await fetch(base+"/api/supervision/timesheets?format=csv",{headers:{Cookie:adminA},signal:AbortSignal.timeout(10000)});
+  assert.equal(csv.status,200);
+  assert.match(csv.headers.get("content-type")||"",/text\/csv/);
+  const content=await csv.text();
+  assert.ok(content.includes("agent-alpha"));
+  assert.ok(!content.includes("agent-beta"));
+  assert.equal((await invoke("/api/supervision/timesheets?start=1900-01-01&end=2026-10-15",adminA)).status,400);
+  console.log("Integration passed: auth roles, tenant isolation, assignments, pointage and safe export.");
 }
 try {await main();}
 finally {
