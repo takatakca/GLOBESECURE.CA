@@ -27,3 +27,8 @@
 
 - **2026-10-15 — Modifications des quarts.** Une modification d'un quart futur ne supprime ni ne réécrit l'historique des changements. Chaque opération autorisée ajoute un événement `gs_assignment_changes`, tenant-scopé; les horaires qui se chevauchent sont refusés, et les sites doivent être actifs au moment de l'opération.
 - **2026-10-15 — Accès au journal.** Le journal d'affectation est réservé aux superviseurs de l'organisation. Les agents voient leurs propres affectations actualisées; les clients ne peuvent pas consulter ce journal interne.
+
+
+- **2026-10-15 — Demandes client privées.** Les demandes de service sont enregistrées sous tenant TAKATAK et auteur précis, et ne sont visibles côté client que par leur auteur. Un superviseur explicite du tenant suit le statut et enregistre les transitions avec audit. Leur collecte reste désactivée tant que la politique de confidentialité n'est pas approuvée.
+- **2026-10-15 — Quota et conservation.** L'API vérifie un plafond de 10 demandes par identité et période mobile de 24 h dans une transaction PostgreSQL et ne s'appuie pas sur une IP envoyée par le navigateur. Les durées de conservation restent à valider avant production.
+- **2026-10-15 — Migration contrôlée.** Les versions de schéma sont listées par SHA-256 et appliquées avec verrou et journal de migrations. L'exécution est explicitement bloquée sans approbation de sauvegarde et du type d'environnement; ce n'est pas un déclenchement de déploiement production.

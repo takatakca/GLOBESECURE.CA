@@ -68,3 +68,12 @@ Les superviseurs gèrent les sites via `/api/supervision/sites` (GET, POST, PATC
 Après sauvegarde vérifiée et migration 007, appliquer `db/migrations/008_assignment_changes.sql` en staging. La table `gs_assignment_changes` contient un historique append-only de chaque modification d'affectation (paramètres précédents et nouveaux, superviseur, tenant). Le code n'effectue aucune modification de ce journal après insertion. Revoir les droits SQL applicatifs et les politiques de rétention avant production.
 
 Le workflow CI utilise `scripts/integration-assignments.mjs` avec un PostgreSQL éphémère pour vérifier le refus d'une réaffectation vers un agent déjà occupé, l'acceptation d'une réaffectation autorisée, l'isolement des organisations, les rôles et les écritures d'audit. Une compilation CI ne remplace pas le test en staging réel avec TAKATAK Auth.
+
+
+## Migrations guidées avec checksum — 2026-10-15
+
+`node scripts/migrate-db.mjs --plan` énumère les migrations présentes dans `db/migrations` et leurs SHA-256 sans contacter PostgreSQL. L'application n'est **jamais** implicite : `--apply` exige `GLOBESECURE_MIGRATE_ENABLED=true`, `GLOBESECURE_BACKUP_VERIFIED=true`, `GLOBESECURE_DEPLOYMENT_ENV=staging` (ou `production` après validation formelle), et `DATABASE_URL` côté serveur. Ne pas saisir les secrets dans une commande partagée, un log ni dans GitHub.
+
+Les migrations sont appliquées dans l'ordre 001 à 009 avec verrou PostgreSQL, transaction par fichier et empreintes sauvegardées dans `gs_schema_migrations`. Le script refuse qu'un fichier déjà appliqué ait une empreinte différente. L'environnement `ci` n'autorise que `127.0.0.1/localhost`, la base `globesecure_test` et `GLOBESECURE_ALLOW_TEST_DB=true`; ce contrôle empêche de pointer le banc de test sur une base distante. Le banc GitHub Actions exécute l'application puis une seconde fois pour contrôler l'idempotence.
+
+La migration 009 exige de valider la politique de protection des demandes de service des clients avant l'activation. `PRIVACY_POLICY_APPROVED=true` ne doit être défini qu'une fois le traitement et la conservation réels documentés. **Ce runner n'a pas été exécuté sur MochaHost ni sur la production.**

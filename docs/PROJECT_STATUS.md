@@ -54,3 +54,14 @@ Migration additive `007_sites.sql` : sites privés par tenant (`gs_sites`) et cl
 Migration `008_assignment_changes.sql` : historique immuable des changements d'affectation, associant `tenant_id`, `assignment_id`, superviseur et valeurs avant/après. L'endpoint `POST /api/supervision/assignments/reschedule` est limité au rôle explicite superviseur et aux quarts futurs actifs; il refuse les conflits d'agents et vérifie les sites actifs de l'organisation. Un endpoint de consultation `GET /api/supervision/assignments/history?id=...` permet de voir la trace des modifications du même tenant. L'interface de supervision présente la modification, la réaffectation et la consultation du journal.
 
 **Tests réels GitHub Actions :** `38774714270` réussi pour le scénario PostgreSQL de réaffectation (y compris refus de double réservation et absence d'accès inter-tenant). Les commits ultérieurs de consultation du journal/UI nécessitent le contrôle de leur dernière CI. Les fonctions ne sont pas déployées sur le site réel.
+
+
+## Demandes clients et migrations reproductibles (2026-10-15)
+
+- Migration `009_client_requests.sql` : demandes de services client par `tenant_id` et `author_sub`, état `submitted → acknowledged → closed` et événements internes append-only.
+- `/api/client/requests` : le client identifié TAKATAK voit exclusivement ses propres demandes et ne peut écrire que si `PRIVACY_POLICY_APPROVED=true`. Ses données `tenant_id` et `author_sub` proviennent exclusivement de la session. Le serveur impose un quota transactionnel de 10 demandes par compte / 24 h.
+- `/api/supervision/requests` : le superviseur du même tenant peut traiter et clôturer, chaque décision étant auditée. Interfaces client/supervision reliées aux vraies API.
+- **CI validée :** `38775724117` pour la soumission et la prise en charge, le refus inter-tenant, les droits par compte client et les quotas (PostgreSQL 16, build, smoke). La collecte publique doit rester désactivée sans politique approuvée.
+- Nouveau `scripts/migrate-db.mjs` : planification par manifest et SHA-256, journal des migrations et contrôle de dérive/idempotence, avec drapeaux explicites d'environnement et sauvegarde vérifiée. **Dernier commit du runner :** `53c2780a3ca55890d3de2dc242f51de7776178d0`; résultat CI à vérifier séparément. Aucun accès à une DB de production n'a été utilisé.
+
+**Déploiement réel :** toujours absent pour la nouvelle version, staging ignoré; la configuration MochaHost historique et TAKATAK OIDC réelle restent non vérifiées.

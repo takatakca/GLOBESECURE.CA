@@ -82,3 +82,8 @@ L'API `/api/supervision/sites` exige le rôle exact `globesecure_supervisor`. Le
 ## Réaffectation et historique des changements
 
 Après migration `008_assignment_changes.sql`, seule une session `globesecure_supervisor` peut modifier un quart futur via `/api/supervision/assignments/reschedule`. Le serveur vérifie le tenant du quart, l'appartenance de l'agent, le site actif, les conflits et l'origine de la requête. La lecture du journal `/api/supervision/assignments/history` exige le même rôle et le tenant exact; elle n'expose pas le journal aux clients ou agents. Les modifications sont historisées avant le commit transactionnel.
+
+
+## Demandes de service authentifiées
+
+Seuls les jetons TAKATAK disposant de `globesecure_client` peuvent créer des demandes de service, et seulement avec consentement, configuration légale et validation serveur. Le `tenant_id` et le `author_sub` sont dérivés du jeton signé; le navigateur ne peut pas les remplacer. Une personne ne voit que ses propres demandes, y compris lorsqu'elle partage un tenant avec d'autres employés. Un jeton `globesecure_supervisor` est requis pour voir les demandes du tenant et changer leur état `submitted → acknowledged → closed`.

@@ -26,3 +26,7 @@ Le prochain agent doit lire `docs/AGENT_HANDOFF.md`, identifier le SHA `main` et
 
 
 - **2026-10-15 :** modification/réaffectation d'affectations futures et historique append-only livrés en code (`008_assignment_changes.sql`, APIs et UI). Tests PostgreSQL de réaffectation réussis, CI `38774714270`. Restent notamment notifications des agents, politique d'approbation des modifications et validations réelles.
+
+
+- **2026-10-15 :** module de demandes clients créé, statuts `submitted/acknowledged/closed`, limitation 10/24h, historique et cloisonnement par utilisateur/organisation; CI `38775724117` réussie. Restent les notifications, politiques de conservation définitives, affectation à un contrat et paramétrage réel.
+- **2026-10-15 :** `scripts/migrate-db.mjs` fournit un plan vérifiable et une application transactionnelle numérotée avec contrôle d'empreinte. À valider dans une CI, puis staging après sauvegarde de la vraie base, avant toute exploitation.

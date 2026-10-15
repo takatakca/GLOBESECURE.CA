@@ -56,3 +56,8 @@ La supervision gère maintenant des sites privés par organisation (`007_sites.s
 ## Réaffectation et journal de modifications
 
 Les superviseurs peuvent modifier les horaires et réaffecter les quarts futurs avec une validation anti-chevauchement et un journal append-only (`008_assignment_changes.sql`). La supervision permet de consulter le journal tenant-scopé. Ces fonctions sont testées sur PostgreSQL isolé en CI; la version du site en production n'est pas confirmée comme mise à jour.
+
+
+## Demandes des clients et migrations
+
+Une demande de service peut désormais être créée depuis le portail client (après validation de la politique de confidentialité), puis traitée par un superviseur. Le code utilise `009_client_requests.sql`; les migrations 001–009 peuvent être inspectées avec `node scripts/migrate-db.mjs --plan` et appliquées exclusivement après sauvegarde avec les garde-fous du document `docs/DEPLOYMENT.md`. Le service réel n'est pas encore raccordé ni déployé sur l'ancien site.
