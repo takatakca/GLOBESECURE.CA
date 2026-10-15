@@ -24,8 +24,8 @@ export default function SupervisorTimesheets(){
   return <section className="assignment-panel"><span className="section-kicker">POINTAGES / RELEVÉ</span><h2>Heures enregistrées</h2>
     <p className="muted">Période par dates UTC, maximum 93 jours. Export administratif pour vérification seulement : ce ne sont pas des heures approuvées pour la paie.</p>
     <form className="assignment-form" onSubmit={e=>{e.preventDefault();load();}}>
-      <label>Du (UTC)<input type="date" required value={start} onChange={e=>setStart(e.target.value)} /></label>
-      <label>Au (UTC)<input type="date" required value={end} onChange={e=>setEnd(e.target.value)} /></label>
+      <label>Du (UTC)<input type="date" required value={start} onChange={e=>{setStart(e.target.value);setLoaded(false);}} /></label>
+      <label>Au (UTC)<input type="date" required value={end} onChange={e=>{setEnd(e.target.value);setLoaded(false);}} /></label>
       <button className="button button-primary" type="submit" disabled={loading}>{loading?"Consultation…":"Afficher le relevé"}</button>
       {loaded&&<a className="button button-outline" href={"/api/supervision/timesheets?"+params}>Exporter le CSV ↗</a>}
     </form>
