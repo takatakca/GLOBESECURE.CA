@@ -15,7 +15,7 @@ export async function GET(request) {
   if(!pool)return NextResponse.json({error:"Base non configurée."},{status:503});
   try {
     const result=await pool.query(
-      "SELECT agent_sub,started_at,stopped_at,round(extract(epoch from(stopped_at-started_at))/3600,2)::float AS hours FROM gs_shifts WHERE tenant_id=$1 AND stopped_at IS NOT NULL AND started_at >= $2 AND started_at < $3 ORDER BY started_at DESC LIMIT 2001",
+      "SELECT s.id,s.agent_sub,s.started_at,s.stopped_at,round(extract(epoch from(s.stopped_at-s.started_at))/3600,2)::float AS hours,COALESCE(a.status,'unreviewed') AS review_status FROM gs_shifts s LEFT JOIN gs_shift_approvals a ON a.tenant_id=s.tenant_id AND a.shift_id=s.id WHERE s.tenant_id=$1 AND s.stopped_at IS NOT NULL AND s.started_at >= $2 AND s.started_at < $3 ORDER BY s.started_at DESC LIMIT 2001",
       [session.tenant,period.start,period.until]);
     if(result.rows.length>2000)return NextResponse.json({error:"Plus de 2 000 quarts dans cette période. Réduisez la plage de dates pour un export complet."},{status:422});
     if(format==="csv"){
