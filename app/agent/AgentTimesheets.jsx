@@ -16,6 +16,6 @@ export default function AgentTimesheets(){
   return <section className="assignment-panel"><span className="section-kicker">HISTORIQUE DE POINTAGE</span><h2>Mes heures enregistrées</h2>
     <p className="muted">Historique des quarts terminés des 30 derniers jours. Ces durées proviennent du pointage et ne constituent pas des heures de paie validées.</p>
     {error&&<p role="alert" className="form-error">{error}</p>}
-    <div className="data-table-wrap"><table className="data-table"><thead><tr><th>Début</th><th>Fin</th><th>Heures enregistrées</th></tr></thead><tbody>{entries.map(e=><tr key={e.id}><td>{date(e.started_at)}</td><td>{date(e.stopped_at)}</td><td>{Number(e.hours).toFixed(2)} h</td></tr>)}{!entries.length&&<tr><td colSpan="3">{loading?"Chargement…":"Aucun quart terminé dans cette période."}</td></tr>}</tbody></table></div>
+    <div className="data-table-wrap"><table className="data-table"><thead><tr><th>Début</th><th>Fin</th><th>Heures enregistrées</th><th>Vérification</th></tr></thead><tbody>{entries.map(e=><tr key={e.id}><td>{date(e.started_at)}</td><td>{date(e.stopped_at)}</td><td>{Number(e.hours).toFixed(2)} h</td><td>{e.review_status==="approved"?"Approuvé":e.review_status==="revoked"?"Approbation retirée":"À vérifier"}</td></tr>)}{!entries.length&&<tr><td colSpan="4">{loading?"Chargement…":"Aucun quart terminé dans cette période."}</td></tr>}</tbody></table></div>
   </section>;
 }
