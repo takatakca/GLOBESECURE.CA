@@ -55,6 +55,19 @@ export default function PatrolManager(){
     }catch(e){setError(e.message);}
     finally{setBusy(false);}
   }
+  async function rotate(item){
+    if(busy||!window.confirm("L'ancien code deviendra immédiatement invalide. Générer un nouveau code ?"))return;
+    setBusy(true);setError("");setFeedback("");setNewCode("");
+    try{
+      const response=await fetch("/api/supervision/patrol",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id,action:"rotate"})});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||"Rotation impossible.");
+      setNewCode(result.code);
+      await load();
+      setFeedback("Code renouvelé. L'ancien code est maintenant invalide. Conservez ce nouveau code.");
+    }catch(e){setError(e.message);}
+    finally{setBusy(false);}
+  }
   return <section className="assignment-panel" aria-label="Points de contrôle de ronde">
     <span className="section-kicker">RONDES DE SÉCURITÉ</span><h2>Points de contrôle</h2>
     <p className="muted">Créez un point pour un site actif. Le code confidentiel est fourni une seule fois : gardez-le hors du système et placez-le physiquement au point prévu. La connaissance du code ne prouve pas automatiquement une présence physique.</p>
@@ -69,12 +82,12 @@ export default function PatrolManager(){
       <button type="button" className="button button-outline button-small" onClick={async()=>{
         try{await navigator.clipboard.writeText(newCode);setFeedback("Code copié.");}catch{setFeedback("Copie impossible : sélectionnez le code affiché.");}
       }}>Copier le code</button>
-      <button type="button" className="button button-outline button-small" onClick={()=>setNewCode("")}>Masquer définitivement le code</button>
+      <button type="button" className="button button-outline button-small" onClick={()=>setNewCode("")}>Masquer le code affiché</button>
     </div>}
     {feedback&&<p role="status" className="shift-message">{feedback}</p>}
     {error&&<p role="alert" className="form-error">{error}</p>}
     <div className="assignment-list">
-      {checkpoints.map(item=><article key={item.id}><span className="section-kicker">{item.active?"ACTIF":"DÉSACTIVÉ"}</span><h3>{item.label}</h3><p>Site : {item.site_name}</p><button className="button button-outline button-small" type="button" disabled={busy} onClick={()=>toggle(item)}>{item.active?"Désactiver":"Réactiver"}</button></article>)}
+      {checkpoints.map(item=><article key={item.id}><span className="section-kicker">{item.active?"ACTIF":"DÉSACTIVÉ"}</span><h3>{item.label}</h3><p>Site : {item.site_name}</p><button className="button button-outline button-small" type="button" disabled={busy} onClick={()=>toggle(item)}>{item.active?"Désactiver":"Réactiver"}</button> {item.active&&<button className="button button-outline button-small" type="button" disabled={busy} onClick={()=>rotate(item)}>Régénérer le code</button>}</article>)}
       {!checkpoints.length&&<p className="muted">{loading?"Chargement des points…":"Aucun point de contrôle créé."}</p>}
     </div>
     <h3>Derniers passages enregistrés</h3>
