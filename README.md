@@ -61,3 +61,7 @@ Les superviseurs peuvent modifier les horaires et réaffecter les quarts futurs 
 ## Demandes des clients et migrations
 
 Une demande de service peut désormais être créée depuis le portail client (après validation de la politique de confidentialité), puis traitée par un superviseur. Le code utilise `009_client_requests.sql`; les migrations 001–009 peuvent être inspectées avec `node scripts/migrate-db.mjs --plan` et appliquées exclusivement après sauvegarde avec les garde-fous du document `docs/DEPLOYMENT.md`. Le service réel n'est pas encore raccordé ni déployé sur l'ancien site.
+
+## Rondes avec points de contrôle
+
+Le code comprend `010_patrol_checkpoints.sql`, la gestion des checkpoints et la saisie/scannérisation QR lorsque le navigateur est compatible. Un superviseur voit une seule fois le code généré; le serveur conserve uniquement sa signature SHA-256. Les agents doivent avoir un quart actif et une affectation valide au site du checkpoint. **Attestation de code, pas preuve irréfutable de présence physique.** Voir `docs/AGENT_HANDOFF.md` avant toute mise en service.

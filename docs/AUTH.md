@@ -87,3 +87,7 @@ Après migration `008_assignment_changes.sql`, seule une session `globesecure_su
 ## Demandes de service authentifiées
 
 Seuls les jetons TAKATAK disposant de `globesecure_client` peuvent créer des demandes de service, et seulement avec consentement, configuration légale et validation serveur. Le `tenant_id` et le `author_sub` sont dérivés du jeton signé; le navigateur ne peut pas les remplacer. Une personne ne voit que ses propres demandes, y compris lorsqu'elle partage un tenant avec d'autres employés. Un jeton `globesecure_supervisor` est requis pour voir les demandes du tenant et changer leur état `submitted → acknowledged → closed`.
+
+## Permissions rondes
+
+Le rôle `globesecure_supervisor` permet de créer et désactiver les checkpoints du tenant, afficher une fois leur secret de 192 bits et lire les derniers passages du même tenant. Le rôle `globesecure_agent` accède exclusivement à ses propres passages et peut enregistrer un code uniquement si son quart est actif, le site est actif et une affectation au site couvre la période. Les appels `POST` et `PATCH` exigent le contrôle d'origine. Aucun navigateur ne choisit librement son `tenant_id`, `agent_sub` ou `shift_id`.

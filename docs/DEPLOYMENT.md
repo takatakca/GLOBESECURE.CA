@@ -77,3 +77,11 @@ Le workflow CI utilise `scripts/integration-assignments.mjs` avec un PostgreSQL 
 Les migrations sont appliquées dans l'ordre 001 à 009 avec verrou PostgreSQL, transaction par fichier et empreintes sauvegardées dans `gs_schema_migrations`. Le script refuse qu'un fichier déjà appliqué ait une empreinte différente. L'environnement `ci` n'autorise que `127.0.0.1/localhost`, la base `globesecure_test` et `GLOBESECURE_ALLOW_TEST_DB=true`; ce contrôle empêche de pointer le banc de test sur une base distante. Le banc GitHub Actions exécute l'application puis une seconde fois pour contrôler l'idempotence.
 
 La migration 009 exige de valider la politique de protection des demandes de service des clients avant l'activation. `PRIVACY_POLICY_APPROVED=true` ne doit être défini qu'une fois le traitement et la conservation réels documentés. **Ce runner n'a pas été exécuté sur MochaHost ni sur la production.**
+
+## Migration 010 — points de contrôle et rondes
+
+Après sauvegarde **réellement vérifiée** et migrations 001–009, appliquer `010_patrol_checkpoints.sql` en staging isolé avec `node scripts/migrate-db.mjs --plan` puis `--apply` après l'activation explicite des drapeaux de sauvegarde et d'environnement. La migration crée `gs_patrol_checkpoints` et `gs_patrol_visits` tenant-scopées et lie les visites aux quarts `gs_shifts` et aux sites `gs_sites`.
+
+Les codes aléatoires de 192 bits ne sont **pas récupérables** : seul leur SHA-256 est conservé. En cas de perte/divulgation, désactiver le point puis en créer un nouveau. Leur impression doit rester hors des services QR tiers qui pourraient récupérer le code. Un code partagé entre personnes ou photographié peut être scanné sans présence sur le site : ne pas l'utiliser comme preuve juridique certaine. La caméra utilise seulement le navigateur de l'agent au moment de sa demande explicite.
+
+La CI valide l'exécution et la réexécution sans modifications des migrations 001–010 sur PostgreSQL 16 local jetable. Aucun staging ou déploiement de production n'a été exécuté par cette mise à jour.

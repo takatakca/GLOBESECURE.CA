@@ -1,32 +1,23 @@
-# GLOBESECURE.CA — File de tâches
-Date : 2026-10-15. Poursuivre les tâches indépendantes malgré les dépendances externes.
+# GlobeSecure — file de tâches (2026-10-15)
 
-| Priorité | État réel | Tâche | Condition de fin |
-| --- | --- | --- | --- |
-| P0 | Terminé dans le dépôt, CI réussie | Migration du contenu public canonique ; 6 services/9 médias | Tests de parité et contrôles anti-bot |
-| P0 | Terminé dans le dépôt, CI réussie | CI verrouillée, smoke et SHA exact | Build reproductible et contrôles HTTP |
-| P0 | Terminé dans le dépôt, CI réussie | Inscription agents et affectations | UI/API, contraintes tenant, conflit d'horaire, tests PostgreSQL |
-| P0 | Terminé dans le dépôt, CI réussie | Historique de pointage / export CSV | Accès agent/superviseur, tenant, plage bornée, tests DB |
-| P0 | En attente d'accès serveur | Sauvegarder et comparer l'ancien site MochaHost | Sauvegarde vérifiée, inventaire des fonctions, compatibilité |
-| P0 | En attente de configuration | Activer un staging isolé sans remplacer l'existant | Domaine HTTPS de staging, Node, variables, health SHA |
-| P0 | En attente de configuration | Raccorder OIDC TAKATAK, PostgreSQL, Resend | Migrations, comptes réels, flux de courriels et tests de rôles |
-| P0 | En attente d'approbation | Vie privée, localisation et politiques de rétention | Politique approuvée, responsable, purge et validation |
-| P1 | À réaliser | Modifier/réaffecter les affectations avec audit | Permissions, prévention de chevauchement, notifications |
-| P1 | Partiel, sites opérationnels testés | Sites protégés et mandats/demandes clients | Sites tenant-isolés et affectations liées; restent mandat contractuel, demandes clients et workflow d'édition |
-| P1 | À réaliser | Ronde QR/NFC, passages et preuves d'inspection | API et UI sécurisées, tests matériels |
-| P1 | Partiel et testé en CI | Validation/révocation des pointages avec audit | Approbations en DB et interface réussies ; restent corrections d'heures, règles métier et export paie homologué |
-| P1 | À réaliser | Gestion du personnel, formations, permis | Gestion autorisée sans CRM maître parallèle |
-| P1 | À réaliser | Candidatures CV sécurisées | Accord légal, stockage chiffré, suppression, notifications |
-| P1 | À réaliser | UX, accessibilité, tests de charge et E2E | Tests sur appareils/navigateurs réels |
-| P0 | Bloqué jusqu'aux validations | Basculer la production | Release exacte vérifiée, rollback testé |
+| Priorité | État | Tâche / condition de fin |
+|---|---|---|
+| P0 | CI validée, non déployée | Vitrine et six services, TAKATAK Auth et séparation des tenants (auth réel non vérifié) |
+| P0 | CI validée, non déployée | Agent START/STOP + consentement, incidents, affectations |
+| P0 | CI validée, non déployée | Sites, affectations, réaffectations et historique, rapports client |
+| P0 | CI validée, non déployée | Pointages/approbations/CSV; paie légale non homologuée |
+| P0 | CI validée, non déployée | Demandes client et workflow supervision, confidentialité fermée par défaut |
+| P0 | Code/test en validation | Rondes par points de contrôle, code secret/QR facultatif, passage lié au quart et site |
+| P0 | CI validée, non déployée | Runner migrations SHA-256 001–010, vérifications de santé et SHA de build |
+| P0 | **Bloqué accès externe** | Sauvegarde/inventaire vrai code MochaHost existant |
+| P0 | **Bloqué configuration** | Staging Node/TLS/SSH + secrets, DB, connexion réelle TAKATAK Auth |
+| P0 | **Bloqué validation juridique** | Vie privée, localisation GPS, rétention, responsables et droits |
+| P1 | À faire | Génération locale d'étiquettes QR/NFC, rotation des codes, stratégie anti-rejeu et preuve de présence |
+| P1 | À faire | Tours/rondes planifiés, alertes de passages manquants, inspection et rapports |
+| P1 | À faire | Gestion des mandats commerciaux et notifications aux agents |
+| P1 | À faire | Paie, correction horaire approuvée, exigences réglementaires |
+| P1 | À faire | Gestion des formations, permis, recrutement/CV sécurisés |
+| P1 | À faire | Sécurité renforcée, WAF, purge automatisée, tests physiques et accessibilité |
+| P0 | **Bloqué validation** | Release réelle HTTPS vérifiée et rollback test avant bascule |
 
-Le prochain agent doit lire `docs/AGENT_HANDOFF.md`, identifier le SHA `main` et la dernière CI, puis prendre le premier chantier indépendant autorisé. Le pipeline ne déploie pas la production actuelle sans vérification des accès et des sauvegardes.
-
-- **2026-10-15 :** registre opérationnel des sites créé (`007_sites.sql`, API et interface supervision), archivage réversible et lien sécurisé aux affectations. CI PostgreSQL `38773870422` réussie. La gestion complète du contrat client et de la tarification n'est **pas** réalisée.
-
-
-- **2026-10-15 :** modification/réaffectation d'affectations futures et historique append-only livrés en code (`008_assignment_changes.sql`, APIs et UI). Tests PostgreSQL de réaffectation réussis, CI `38774714270`. Restent notamment notifications des agents, politique d'approbation des modifications et validations réelles.
-
-
-- **2026-10-15 :** module de demandes clients créé, statuts `submitted/acknowledged/closed`, limitation 10/24h, historique et cloisonnement par utilisateur/organisation; CI `38775724117` réussie. Restent les notifications, politiques de conservation définitives, affectation à un contrat et paramétrage réel.
-- **2026-10-15 :** `scripts/migrate-db.mjs` fournit un plan vérifiable et une application transactionnelle numérotée avec contrôle d'empreinte. À valider dans une CI, puis staging après sauvegarde de la vraie base, avant toute exploitation.
+Le chantier reprenable immédiatement est la rotation/émission des codes QR ou les mandats; voir `docs/AGENT_HANDOFF.md`. **Ne jamais remplacer la production existante sans sauvegarde.**

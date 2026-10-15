@@ -32,3 +32,10 @@
 - **2026-10-15 — Demandes client privées.** Les demandes de service sont enregistrées sous tenant TAKATAK et auteur précis, et ne sont visibles côté client que par leur auteur. Un superviseur explicite du tenant suit le statut et enregistre les transitions avec audit. Leur collecte reste désactivée tant que la politique de confidentialité n'est pas approuvée.
 - **2026-10-15 — Quota et conservation.** L'API vérifie un plafond de 10 demandes par identité et période mobile de 24 h dans une transaction PostgreSQL et ne s'appuie pas sur une IP envoyée par le navigateur. Les durées de conservation restent à valider avant production.
 - **2026-10-15 — Migration contrôlée.** Les versions de schéma sont listées par SHA-256 et appliquées avec verrou et journal de migrations. L'exécution est explicitement bloquée sans approbation de sauvegarde et du type d'environnement; ce n'est pas un déclenchement de déploiement production.
+
+## 2026-10-15 — Rondes et attestations de passage
+
+- Codes 192 bits générés côté serveur, stockés **uniquement** sous forme de condensat SHA-256 ; divulgation du code une seule fois au superviseur lors de sa création. Les codes ne sont jamais renvoyés par GET.
+- L'agent ne peut enregistrer de passage que pendant un quart actif, pour un site actif auquel il est affecté; une seule visite par checkpoint et quart. Le tenant et le sujet viennent uniquement de TAKATAK Auth.
+- Une possession de code statique ne prouve pas physiquement la présence. La caméra (si navigateur compatible `BarcodeDetector`) et l'entrée manuelle sont deux moyens de présentation du même code. Aucune photo ou position GPS supplémentaire n'est capturée par le module de ronde.
+- Les sites, codes et passages demeurent privés par tenant ; leurs politiques de stockage, preuve et rétention doivent être validées avant l'exploitation.
