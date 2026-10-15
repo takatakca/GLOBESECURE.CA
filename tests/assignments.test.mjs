@@ -18,3 +18,11 @@ test("cancellation requires valid UUID",()=>{
   assert.ok(validAssignmentId("123e4567-e89b-42d3-a456-426614174000"));
   assert.equal(validAssignmentId("../other-tenant"),false);
 });
+
+test("site selection accepts canonical UUID and rejects malformed cross-tenant identifier",()=>{
+  const linked={...good,siteId:"123e4567-e89b-42d3-a456-426614174000"};
+  delete linked.siteLabel;
+  assert.equal(parseAssignment(linked,now)?.siteId,linked.siteId);
+  assert.equal(parseAssignment({...linked,siteId:"bogus"},now),null);
+  assert.equal(parseAssignment({...good,siteId:"../../admin"},now),null);
+});

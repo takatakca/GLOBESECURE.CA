@@ -19,7 +19,7 @@ export async function GET() {
   try {
     const roster = await ctx.pool.query("SELECT agent_sub,registered_at FROM gs_agent_roster WHERE tenant_id=$1 ORDER BY registered_at DESC LIMIT 200",[ctx.session.tenant]);
     const assignments = await ctx.pool.query(
-      "SELECT id,agent_sub,title,site_label,starts_at,ends_at,status,created_at FROM gs_assignments WHERE tenant_id=$1 AND ends_at>=now()-interval '14 days' ORDER BY starts_at ASC LIMIT 200",
+      "SELECT id,agent_sub,title,site_label,site_id,starts_at,ends_at,status,created_at FROM gs_assignments WHERE tenant_id=$1 AND ends_at>=now()-interval '14 days' ORDER BY starts_at ASC LIMIT 200",
       [ctx.session.tenant]);
     return NextResponse.json({roster:roster.rows,assignments:assignments.rows},{headers:{"Cache-Control":"no-store"}});
   } catch {return NextResponse.json({error:"Affectations indisponibles."},{status:503});}
@@ -46,6 +46,19 @@ export async function POST(request) {
       await client.query("ROLLBACK");
       return NextResponse.json({error:"Agent non inscrit dans cette organisation."},{status:404});
     }
+    // Only a current active site of this tenant can be attached to a new assignment.
+    // The site label is taken from the database, never from an untrusted request.
+    let siteLabel=assignment.siteLabel;
+    if (assignment.siteId) {
+      const site=await client.query(
+        "SELECT name FROM gs_sites WHERE tenant_id=$1 AND id=$2 AND active=true FOR KEY SHARE",
+        [ctx.session.tenant,assignment.siteId]);
+      if(!site.rowCount) {
+        await client.query("ROLLBACK");
+        return NextResponse.json({error:"Site inexistant, inactif ou hors de votre organisation."},{status:404});
+      }
+      siteLabel=site.rows[0].name;
+    }
     const conflict=await client.query(
       "SELECT 1 FROM gs_assignments WHERE tenant_id=$1 AND agent_sub=$2 AND status='scheduled' AND starts_at < $4 AND ends_at > $3 LIMIT 1",
       [ctx.session.tenant,assignment.agentSub,assignment.startsAt,assignment.endsAt]);
@@ -54,8 +67,8 @@ export async function POST(request) {
       return NextResponse.json({error:"Cet agent a déjà une affectation qui chevauche ce quart."},{status:409});
     }
     const saved=await client.query(
-      "INSERT INTO gs_assignments(tenant_id,agent_sub,title,site_label,starts_at,ends_at,created_by_sub) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id,agent_sub,title,site_label,starts_at,ends_at,status",
-      [ctx.session.tenant,assignment.agentSub,assignment.title,assignment.siteLabel,assignment.startsAt,assignment.endsAt,ctx.session.sub]);
+      "INSERT INTO gs_assignments(tenant_id,agent_sub,title,site_label,starts_at,ends_at,created_by_sub,site_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,agent_sub,title,site_label,site_id,starts_at,ends_at,status",
+      [ctx.session.tenant,assignment.agentSub,assignment.title,siteLabel,assignment.startsAt,assignment.endsAt,ctx.session.sub,assignment.siteId]);
     await client.query(
       "INSERT INTO gs_audit(tenant_id,actor_sub,action) VALUES($1,$2,'assignment.create')",
       [ctx.session.tenant,ctx.session.sub]);
