@@ -90,3 +90,12 @@ La CI valide l'exécution et la réexécution sans modifications des migrations 
 ## Rotation des points et QR générés localement
 
 La supervision utilise `vendor/qrcode-generator.mjs` (MIT, licence `vendor/LICENSE`) afin de rendre les QR en SVG sans service externe. Toute photographie d'un code constitue une copie exploitable. La fonction de rotation (`PATCH /api/supervision/patrol`, `action=rotate`) invalide le code précédent et garde l'historique des passages. Retirer les anciennes étiquettes après rotation. Le scanner utilise `BarcodeDetector` si disponible; une saisie manuelle existe sur les autres appareils.
+
+
+## Migration 011 et monitoring des rondes
+
+Exécuter d'abord `node scripts/migrate-db.mjs --plan` ; après validation formelle d'une sauvegarde et sur le **staging isolé**, appliquer `db/migrations/011_patrol_schedule.sql` **après 010** via `--apply` avec les drapeaux d'environnement déjà décrits. La migration crée `gs_patrol_schedule` et un journal append-only `gs_patrol_schedule_events`, liés par FK composites au tenant de l'affectation et du point de contrôle.
+
+L'API superviseur renvoie les échéances calculées à la lecture et peut exporter un CSV. Elle n'effectue aucun envoi externe ou tâche de fond. Les contrôles en retard sont conditionnés au statut de l'affectation et à l'activité du site et du point, avec tolérance configurée. Le schéma actuel limite un passage attendu par couple affectation/point. Les consultations manuelles n'équivalent pas à une surveillance active : avant un lancement, préciser le calendrier de rafraîchissement, les destinataires, les modalités de notification et la conservation légale.
+
+Staging GitHub actuellement **ignoré** ; ne pas réclamer de validation du code déployé tant que `/api/health` ne donne pas le SHA exact du nouveau build sur HTTPS.

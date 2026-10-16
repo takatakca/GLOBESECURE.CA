@@ -70,3 +70,8 @@ Le code comprend `010_patrol_checkpoints.sql`, la gestion des checkpoints et la 
 ## Impression locale des QR
 
 Le superviseur peut afficher et imprimer un QR pour un code de contrôle créé ou renouvelé, sans l'envoyer à un service externe. La bibliothèque MIT est documentée dans `vendor/LICENSE`. Les étiquettes sont des codes copiables et ne remplacent pas une preuve physique de présence.
+
+
+## Planification et suivi des rondes
+
+La supervision permet maintenant de programmer une visite de checkpoint pendant une affectation, fixer un délai, voir les passages réels/retards, annuler une échéance future et exporter un relevé CSV. Les agents voient uniquement leur propre programme. Le statut est calculé depuis la base et ne représente pas une notification externe envoyée. Migration PostgreSQL `011_patrol_schedule.sql` ; **non déployé sur globesecure.ca**, voir `docs/AGENT_HANDOFF.md`.

@@ -43,3 +43,9 @@
 
 - **2026-10-15 — Rotation auditée.** Un superviseur peut remplacer le code d'un point actif; l'ancien code est invalide immédiatement et les passages ne sont pas effacés.
 - **2026-10-15 — QR en local.** L'encodeur MIT de Kazuhiko Arase est inclus dans `vendor/` avec licence. Le QR est calculé hors ligne dans le navigateur et n'est pas envoyé à une application tierce.
+
+
+- **2026-10-15 — Rondes planifiées.** Chaque attente est rattachée à une affectation et à un point du même site, tenant-scopée en base. Une échéance ne peut pas être créée en dehors des horaires de l'affectation. Annulation auditée, sans supprimer l'historique.
+- **2026-10-15 — Signalements de retards.** Le statut est dérivé au moment de la lecture des visites effectivement reçues dans la fenêtre. Les attentes annulées, les sites/points désactivés et les affectations annulées ne créent pas de fausses alertes de retard. Les alertes sont *in-app* et dans le CSV, sans SMS/email/push tant que les fournisseurs et autorisations ne sont pas configurés.
+- **2026-10-15 — Limitation métier documentée.** Le module actuel vérifie un passage par point et par quart, et autorise une attente par (affectation,point). Les rondes périodiques multi-passages requièrent une migration et des tests d'anti-rejeu avant production.
+- **2026-10-15 — Exports sécurisés.** Le CSV des rondes est réservé au superviseur du tenant et échappe les cellules pour limiter les formules malveillantes.

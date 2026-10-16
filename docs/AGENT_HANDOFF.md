@@ -1,56 +1,53 @@
-# GlobeSecure — relève technique permanente
+# GLOBESECURE.CA — RELÈVE OPÉRATIONNELLE
 
-**Date :** 2026-10-15 · **Dépôt :** `takatakca/GLOBESECURE.CA` · **Branche :** `main`.
-**Avant toute modification :** lire `AGENTS.md`, ce fichier, `docs/TASK_QUEUE.md`, puis vérifier le vrai SHA et les GitHub Actions. Le dernier SHA du présent commit documentaire ne peut être connu qu'après le push.
+**Mise à jour :** 15 octobre 2026, 23 h (heure de Montréal).
+**Dépôt :** `takatakca/GLOBESECURE.CA` — branche `main`.
+**Dernier commit technique avant cette relève :** `f1b86824cda38977c1b8497cc13b0dcce58da798`. Un nouveau SHA est créé par le présent commit documentaire : lire GitHub HEAD au prochain lancement.
 
-## Dernière fonctionnalité livrée en code
+## Dernière tâche terminée — rondes planifiées et signalement des contrôles manquants
 
-Le module de **rondes par points de contrôle** relie les sites `gs_sites`, les agents autorisés, les quarts START/STOP et les affectations. Il comporte :
+Suite de la gestion des sites, agents et QR de sécurité déjà existante :
 
-- Migration `010_patrol_checkpoints.sql` : codes aléatoires de 192 bits, seul SHA-256 stocké, FK composites (`tenant_id`, `site_id`/`shift_id`), limite d'un passage par point et quart.
-- Supervision `/api/supervision/patrol` et `PatrolManager.jsx` : créer, activer/désactiver un point ; présenter le code **une seule fois** ; visualiser les derniers passages du même tenant.
-- Agent `/api/agent/patrol` et `AgentPatrol.jsx` : saisir le code manuellement ou le lire depuis un QR existant via l'API navigateur `BarcodeDetector`, quand elle existe ; valider quart actif, site actif et affectation temporelle au site ; l'agent voit uniquement ses passages.
-- Ce système établit la **possession d'un code**, et **ne garantit pas la présence physique** : un code statique peut être copié. Aucune nouvelle localisation ou photo n'est collectée. Les images QR sont désormais générées et imprimées localement sans service externe; l'intégration NFC et la revue du modèle de preuve restent nécessaires.
+- Migration additive `011_patrol_schedule.sql` : planification d'un passage par point et affectation, fenêtre de tolérance de 5 à 120 minutes, annulation contrôlée et journal d'événements append-only.
+- API de supervision `/api/supervision/patrol/schedule` : lecture des statuts calculés depuis PostgreSQL (`upcoming`, `due`, `overdue`, `completed`, `cancelled`, `suspended`), programmation et annulation des contrôles futurs, export CSV privé et protégé contre l'injection de formules.
+- API agent `/api/agent/patrol/schedule` : chaque agent voit exclusivement les passages attendus de ses affectations, sans liste de tous les sites ou agents.
+- Interfaces `PatrolScheduleManager.jsx` et `AgentPatrolSchedule.jsx` : planification, état des passages, compte des contrôles en retard, actualisation manuelle et export.
+- Le passage n'est réputé confirmé que si le point, l'agent authentifié, la fenêtre d'échéance et l'affectation correspondent à un véritable scan enregistré. Une affectation annulée ou un point/site désactivé ne crée pas une fausse alerte de retard.
+- **Les alertes sont seulement affichées dans l'application et le CSV**. Aucun SMS, courriel, push ou ordonnanceur distant n'est connecté ; ne pas présenter un affichage de retard comme une notification envoyée.
+- Le modèle actuel limite un contrôle attendu à chaque `(affectation,point)` et un scan à chaque `(quart,point)`. Les rondes répétées au même point durant un même quart nécessiteront une évolution coordonnée du schéma et des règles d'anti-rejeu.
 
-## Source et travaux conservés
+## Vérifications
 
-Le site commercial `https://globesecure.ca` demeure la référence officielle du contenu. Le dépôt contient la vitrine et les six services, TAKATAK Auth OIDC/PKCE, les espaces agents et superviseurs, autorisations par rôle/tenant, rapports, incidents, consentement GPS, affectations, registres de sites, validation de pointages et CSV, demandes clients et le runner de migrations 001–010 avec contrôle SHA-256. **Aucune de ces fonctions dans le nouveau dépôt n'est présumée être réellement en production.**
+La CI de référence avant le présent travail : `38792757570` (réussie).
+- `38844177738` (migration 011 et tests unitaires), **réussie**.
+- `38844162817` (API + scénarios PostgreSQL de planification), **réussie**.
+- `38844303675` (statuts suspendus et tests multi-tenant), **réussie**.
+- Le dernier lot CSV `f1b86824` et le présent commit documentaire doivent être **revérifiés** sur GitHub Actions avant de déclarer le SHA final valide.
+- CI : `npm ci`, `npm test`, `npm run build`, démarrage Next.js standalone + smoke HTTP, `scripts/integration-assignments.mjs` avec PostgreSQL 16 jetable; `scripts/migrate-db.mjs --apply` deux fois pour tester l'idempotence des migrations 001–011.
+- Tests couvrent rôles TAKATAK simulés, deux tenants, propriétaires de données, échéance réelle et volontairement dépassée en DB de test, scans réconciliés, annulations, suspension, et confidentialité CSV. Les tests CI ne prouvent **pas** une connexion au vrai fournisseur TAKATAK OIDC.
 
-## Commits, fichiers et validations
+## Fichiers modifiés dans cette reprise
 
-- **Dernier commit technique poussé avant cette relève :** `2b60b6782921c181a6715e986b17bb79b156b847` (tests complémentaires de rondes).
-- Modifications de cette reprise : `db/migrations/010_patrol_checkpoints.sql`, `lib/patrol.mjs`, `tests/patrol.test.mjs`, `app/api/{supervision,agent}/patrol/route.js`, `app/supervision/PatrolManager.jsx`, `app/agent/AgentPatrol.jsx`, `app/{agent,supervision}/page.jsx`, `app/globals.css`, `scripts/integration-assignments.mjs` et documents de suivi.
-- Exécution CI `38791376787` (commit `82f2fd1b1a33acda89bb5332e8c3fc525e7a0faf`) **réussie**, avec tests PostgreSQL des rondes : codes confidentiels, autorisations des tenants, quart inactif rejeté, un passage/point/quart, activation/désactivation, permissions client/agent.
-- Exécution du dernier scénario complémentaire `2b60b678` et de ce commit documentaire : **vérifier le résultat dans GitHub Actions** avant d'annoncer leur réussite. Ne jamais extrapoler depuis les runs antérieurs.
-- Pipeline CI : `npm ci` (Node 22), `npm test`, build Next.js standalone, smoke HTTP sur port 3077 et test d'intégration PostgreSQL 16 sur port 3078 avec `scripts/integration-assignments.mjs`. Le script de migrations est rejoué pour contrôler l'idempotence.
+`db/migrations/011_patrol_schedule.sql`,
+`lib/patrol-schedule.mjs`, `tests/patrol-schedule.test.mjs`,
+`app/api/supervision/patrol/schedule/route.js`,
+`app/api/agent/patrol/schedule/route.js`,
+`app/supervision/PatrolScheduleManager.jsx`,
+`app/agent/AgentPatrolSchedule.jsx`,
+`app/supervision/page.jsx`, `app/agent/page.jsx`,
+`scripts/integration-assignments.mjs`, `tests/migrations.test.mjs`,
+`docs/AGENT_HANDOFF.md`, `docs/PROJECT_STATUS.md`, `docs/TASK_QUEUE.md`, `docs/DEPLOYMENT.md`, `docs/DECISIONS.md`, `README.md`.
 
-## Problèmes connus et déploiement
+## Déploiement réel, problèmes et accès
 
-- GitHub staging `.github/workflows/staging.yml` : **désactivé / exécutions ignorées**. Aucun déploiement vérifié du nouveau code sur `globesecure.ca`; ne pas toucher au document root existant.
-- Aucun accès direct vérifié au code et aux sauvegardes de l'ancien hébergement MochaHost. Pas de validation d'un vrai login TAKATAK, d'une base PostgreSQL hors CI, d'un envoi Resend ou du certificat/port Node staging.
-- Activation de la collecte des données clients/candidats conditionnée à `PRIVACY_POLICY_APPROVED=true` seulement après approbation réelle; GPS, rétention des rondes et preuves de passage à valider.
-- Autres modules ouverts : mandats contractuels, notifications, politiques de ronde et preuve de présence, étiquettes NFC et exigences de preuve terrain, paie réglementaire, conservation/purge, recrutement avec CV sécurisé, tests appareils réels.
+Le staging `.github/workflows/staging.yml` **reste désactivé/ignoré**, et l'ancienne production **https://globesecure.ca** n'a pas été remplacée. Aucun déploiement du code nouveau sur un domaine accessible n'est vérifié ; ne pas prétendre « déployé ». Avant toute publication : sauvegarde et inventaire de l'ancienne installation MochaHost, staging réellement isolé sur Node 22/HTTPS, variables OIDC TAKATAK, PostgreSQL, Resend, configuration sûre des comptes et politique de confidentialité/conservation approuvée. Ne jamais ajouter les secrets ou QR confidentiels dans GitHub.
 
-## Accès nécessaires (sans divulguer de secrets)
-
-Inventaire et sauvegarde vérifiés MochaHost, configuration du staging Node 22 SSH/TLS et domaine HTTPS distinct, variables/secrets TAKATAK OIDC, PostgreSQL réel, Resend, politique de confidentialité approuvée, permissions DB minimales. Aucun secret ne doit être copié dans GitHub.
+Autres chantiers non clos : alertes proactives (email/SMS/push conditionnées aux services/configurations réels), roulements répétés par point, rattachement contractuel aux mandats clients, vérification de présence sur le terrain, NFC, régularisation/paie, recrutement, purge, tests e2e smartphone, exploitation et déploiement réels.
 
 ## Prochaine action exacte
 
-1. Vérifier `git log -1`, le dernier run GitHub CI ainsi que les issues/PR ; corriger une éventuelle erreur.
-2. Pour un chantier exécutable indépendant du serveur : compléter les rondes planifiées, alertes et tests de terrain, ou poursuivre les mandats et approbations métier, puis pousser un commit testé.
-3. Dès qu'un accès MochaHost est validé : sauvegarder/inventorier la production existante, préparer staging strictement isolé, appliquer `010_patrol_checkpoints.sql` après 009 sur DB sauvegardée avec `scripts/migrate-db.mjs`, connecter OIDC réel et vérifier `/api/health.release` sur HTTPS avant toute bascule. Sans ces étapes, **pas de publication production**.
+1. Vérifier le SHA HEAD et le dernier run CI; corriger les échecs éventuels, puis consigner le résultat.
+2. Poursuivre les rondes répétées/notifications avec une politique et un fournisseur de livraison réellement configurés, ou les mandats clients et rapports opérationnels; couvrir tous les droits/tenants par tests.
+3. Lorsque l'infrastructure réelle est accessible : sauvegarder MochaHost, configurer staging isolé et sa base, y appliquer les migrations 001–011 avec les garde-fous, connecter TAKATAK Auth et contrôler le SHA renvoyé par `/api/health` sur l'URL effective avant toute bascule.
 
-Le dépôt GitHub préserve le travail entre sessions; aucune reprise automatique n'est active sans orchestrateur externe autorisé.
-
-
-## Complément — génération QR hors ligne et rotation (2026-10-15)
-
-- **Dernière tâche terminée :** régénération transactionnelle des codes de contrôle via `PATCH /api/supervision/patrol` avec `action=rotate`. L'ancien code devient invalide, le nouveau ne s'affiche qu'une seule fois, les visites passées sont conservées.
-- **QR imprimables :** `vendor/qrcode-generator.mjs` (MIT, Kazuhiko Arase, `vendor/LICENSE`), `app/supervision/CheckpointQr.jsx` et `PatrolManager.jsx` produisent le QR localement et l'impriment. Aucun service externe ne reçoit le code.
-- **Dernier commit technique avant cette documentation :** `e086023241893cb184ee9c793644795b3d228bbe`. La présente relève produira un SHA différent : toujours consulter HEAD.
-- **Vérifications réussies :** CI `38791984213` pour rotation/visites PostgreSQL ; CI `38792303953` pour générateur QR et tests unitaires. Vérifier le dernier run CI du commit `e0860232` et le commit documentaire.
-- **Fichiers modifiés dans cette phase :** `lib/patrol.mjs`, `tests/patrol.test.mjs`, `app/api/supervision/patrol/route.js`, `app/supervision/{PatrolManager,CheckpointQr}.jsx`, `app/globals.css`, `scripts/integration-assignments.mjs`, `tests/qr-renderer.test.mjs`, `vendor/`, et documents de suivi.
-- **Statut réel du déploiement :** staging toujours ignoré ; nouveau code NON vérifié sur `globesecure.ca`. L'ancien site MochaHost n'a pas été écrasé.
-- **Blocages externes :** inventaire/sauvegarde MochaHost, HTTPS et Node staging, TAKATAK OIDC réel, PostgreSQL/Resend en exploitation, confidentialité/rétention et essais smartphone. Ne publier ni secrets ni codes QR dans les journaux.
-- **Prochaine action exacte :** inspecter HEAD et son dernier pipeline; corriger toute erreur; poursuivre les tournées planifiées/alertes ou la gestion des mandats. Une fois les accès MochaHost obtenus et sauvegardés, valider staging isolé et SHA réel sur `/api/health.release`.
+**Le dépôt conserve le travail, mais une session ChatGPT ne redémarre pas automatiquement sans orchestrateur autorisé.**

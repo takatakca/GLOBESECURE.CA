@@ -25,3 +25,11 @@ Le chantier reprenable immédiatement est la planification des rondes, les alert
 
 - **Terminé dans le dépôt :** génération locale d'images QR, impression, remplacement audité d'un code compromis et préservation des passages. Tests CI de rotation et de rendu réussis.
 - **Reste à faire :** intégration NFC, tournées planifiées et alertes, essais sur appareils réels, sécurisation des étiquettes sur site et politique de preuve de présence. Le code QR statique reste transférable.
+
+
+## Actualisation de la file — 15 octobre 2026
+
+- **Terminé dans le code, CI PostgreSQL validée :** rondes planifiées par affectation/point, échéances, tolérances, annulations auditées, suivi des passages réels, retards et suspensions, affichages agent/supervision. Migration `011_patrol_schedule.sql`.
+- **À vérifier après dernier commit :** CSV de supervision avec garde tenant, filtre format et protection contre les formules; dernier run GitHub Actions.
+- **À réaliser :** vrais envois d'alertes aux superviseurs, répétition d'un point dans un même quart, notifications aux agents, qualification de présence physique, politique de conservation et audit sur environnement réel.
+- **Bloqué côté hébergement :** sauvegarde/source MochaHost, staging Node 22 HTTPS + PostgreSQL, TAKATAK Auth OIDC et secrets, approbation vie privée/contrôles métier, release puis rollback vérifiés. Ne pas modifier la production avant ces étapes.

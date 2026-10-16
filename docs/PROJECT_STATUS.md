@@ -33,3 +33,10 @@ CI `38791376787` sur `82f2fd1b1a33acda89bb5332e8c3fc525e7a0faf` : **succès**, i
 Le code comprend désormais la régénération des secrets de checkpoint sans supprimer les visites précédentes. L'image QR est produite localement via une implémentation MIT conservée dans `vendor/`; le code n'est jamais communiqué à un service tiers. L'impression est disponible lors de l'émission unique d'un secret. Les QR restent des codes copiables et ne prouvent pas physiquement le déplacement.
 
 CI `38791984213` réussie pour la rotation auditée en PostgreSQL, CI `38792303953` réussie pour les tests du générateur QR. Les dernières Actions sur `main` doivent être contrôlées. **Aucun déploiement réel constaté sur globesecure.ca.**
+
+
+## Complément — 15 octobre 2026 : rondes programmées et retards
+
+Migration 011, API et interfaces permettent désormais de programmer des attentes de passages de rondes dans une affectation, visualiser les échéances, les passages confirmés, manquants, annulés et suspendus, et exporter en CSV tenant-scopé. Les statuts proviennent des visites conservées dans PostgreSQL. Les points/sites désactivés et les affectations annulées ne sont pas signalés abusivement comme « en retard ». La CI PostgreSQL `38844303675` a réussi; vérifier également la dernière CI de l'export CSV.
+
+Ce sont des **signalements dans le portail uniquement** : aucune notification proactive externe n'est envoyée et aucun service de planification en production n'est connecté. Une visite est un enregistrement d'utilisation du code, pas une preuve irréfutable de présence. Un scan par point et quart est actuellement pris en charge. Ni staging ni production de cette version ne sont vérifiés.
