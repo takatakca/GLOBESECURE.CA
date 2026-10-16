@@ -40,6 +40,14 @@ export default function PatrolScheduleManager(){
     }).catch(err=>{if(live)setError(err.message);}).finally(()=>{if(live)setLoading(false);});
     return ()=>{live=false;};
   },[]);
+  // Live flags update while this browser tab is visible; this sends no external alert.
+  useEffect(()=>{
+    const timer=window.setInterval(()=>{
+      if(document.hidden)return;
+      refresh().catch(err=>setError(err.message));
+    },60000);
+    return ()=>window.clearInterval(timer);
+  },[]);
   async function create(event){
     event.preventDefault();
     if(busy)return;

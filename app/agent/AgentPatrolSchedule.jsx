@@ -25,6 +25,17 @@ export default function AgentPatrolSchedule(){
     }).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setBusy(false);});
     return ()=>{active=false;};
   },[]);
+  useEffect(()=>{
+    const timer=window.setInterval(()=>{
+      if(document.hidden)return;
+      fetch("/api/agent/patrol/schedule",{cache:"no-store"}).then(async response=>{
+        const payload=await response.json();
+        if(!response.ok)throw Error(payload.error||"Programme indisponible.");
+        setPlans(payload.plans||[]);
+      }).catch(err=>setError(err.message));
+    },60000);
+    return ()=>window.clearInterval(timer);
+  },[]);
   return <section className="assignment-panel" aria-label="Programme des rondes">
     <div className="supervision-head"><div><span className="section-kicker">RONDES PLANIFIÉES</span><h2>Mes contrôles attendus</h2></div>
     <button type="button" className="button button-outline button-small" disabled={busy} onClick={reload}>{busy?"Actualisation…":"Actualiser"}</button></div>
