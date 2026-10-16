@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import {migrationManifest,migrationAllowed} from "../lib/migrations.mjs";
 test("sequential numbered SQL migrations have sha256 checksums",async()=>{
   const files=await migrationManifest();
-  assert.ok(files.length>=9);
+  assert.ok(files.length>=11);
   assert.equal(files[0].name,"001_init.sql");
   assert.equal(files[8].name,"009_client_requests.sql");
+  assert.equal(files[10].name,"011_patrol_schedule.sql");
   assert.ok(files.every(item=>/^[a-f0-9]{64}$/.test(item.checksum)));
 });
 test("migrations cannot accidentally run without explicit backup and target gate",()=>{
