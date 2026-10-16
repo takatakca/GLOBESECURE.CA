@@ -209,6 +209,15 @@ async function main() {
   assert.equal(confirmed.payload.plans.find(p=>p.id===cancelledId)?.display_status,"cancelled");
   // In the disposable integration database only, simulate elapsed time so no real waits are required.
   await pool.query("UPDATE gs_patrol_schedule SET due_at=now()-interval '30 minutes' WHERE id=$1",[missingPlan.payload.plan.id]);
+  const csvPatrol=await fetch(base+"/api/supervision/patrol/schedule?format=csv",{headers:{Cookie:adminA},signal:AbortSignal.timeout(10000)});
+  assert.equal(csvPatrol.status,200);
+  assert.match(csvPatrol.headers.get("content-type")||"",/text\/csv/);
+  const patrolFile=await csvPatrol.text();
+  assert.ok(patrolFile.includes("Entrée principale")&&patrolFile.includes("agent-alpha"));
+  const otherCsv=await fetch(base+"/api/supervision/patrol/schedule?format=csv",{headers:{Cookie:adminB},signal:AbortSignal.timeout(10000)});
+  assert.equal(otherCsv.status,200);
+  assert.ok(!(await otherCsv.text()).includes("Entrée principale"),"cross-tenant CSV must remain private");
+  assert.equal((await invoke("/api/supervision/patrol/schedule?format=xml",adminA)).status,400);
   const overdue=await invoke("/api/supervision/patrol/schedule",adminA);
   assert.equal(overdue.payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue","missing checkpoint must be flagged after grace period");
   assert.equal((await invoke("/api/agent/patrol/schedule",agentA)).payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue");
