@@ -39,7 +39,7 @@ async function main() {
       env:migrationEnv,encoding:"utf8",timeout:25000
     });
     if(run.status!==0)throw Error("Guarded migration run failed: "+(run.stderr||run.stdout).slice(-1000));
-    assert.match(run.stdout,attempt===0?/APPLIED 010_patrol_checkpoints.sql/:/VERIFIED 010_patrol_checkpoints.sql/);
+    assert.match(run.stdout,attempt===0?/APPLIED 011_patrol_schedule.sql/:/VERIFIED 011_patrol_schedule.sql/);
     console.log("Guarded migration pass "+(attempt+1)+" succeeded");
   }
   server=spawn(process.execPath,[".next/standalone/server.js"],{
@@ -158,6 +158,41 @@ async function main() {
     startsAt:patrolStart.toISOString(),endsAt:patrolEnd.toISOString()
   });
   assert.equal(patrolAssignment.status,201,JSON.stringify(patrolAssignment.payload));
+  const patrolId=patrolAssignment.payload.assignment.id;
+  const dueAt=new Date(patrolStart.getTime()+60_000).toISOString();
+  const scheduled=await invoke("/api/supervision/patrol/schedule",adminA,"POST",{
+    assignmentId:patrolId,checkpointId:pointId,dueAt,graceMinutes:15
+  });
+  assert.equal(scheduled.status,201,JSON.stringify(scheduled.payload));
+  const planId=scheduled.payload.plan.id;
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminA,"POST",{
+    assignmentId:patrolId,checkpointId:pointId,dueAt,graceMinutes:15
+  })).status,409,"cannot double-plan a checkpoint for one assignment");
+  assert.equal((await invoke("/api/supervision/patrol/schedule",agentA)).status,403,"agent cannot supervise patrol");
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminB)).payload.plans.length,0,"supervisors isolated by tenant");
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminB,"POST",{
+    assignmentId:patrolId,checkpointId:pointId,dueAt,graceMinutes:15
+  })).status,404,"cannot plan another tenant's assignment");
+  assert.equal((await invoke("/api/agent/patrol/schedule",clientA)).status,403,"client cannot see staff patrol schedule");
+  assert.equal((await invoke("/api/agent/patrol/schedule",agentB)).payload.plans.length,0,"other tenant agent cannot read schedule");
+  assert.equal((await invoke("/api/agent/patrol/schedule",agentC)).payload.plans.length,0,"same tenant agent without assignment cannot see schedule");
+  assert.equal((await invoke("/api/agent/patrol/schedule",agentA)).payload.plans.length,1);
+  const missingPoint=await invoke("/api/supervision/patrol",adminA,"POST",{siteId:siteA.id,label:"Sortie arrière"});
+  assert.equal(missingPoint.status,201);
+  const missingPlan=await invoke("/api/supervision/patrol/schedule",adminA,"POST",{
+    assignmentId:patrolId,checkpointId:missingPoint.payload.checkpoint.id,dueAt,graceMinutes:5
+  });
+  assert.equal(missingPlan.status,201);
+  const cancelPoint=await invoke("/api/supervision/patrol",adminA,"POST",{siteId:siteA.id,label:"Contrôle à annuler"});
+  assert.equal(cancelPoint.status,201);
+  const cancellable=await invoke("/api/supervision/patrol/schedule",adminA,"POST",{
+    assignmentId:patrolId,checkpointId:cancelPoint.payload.checkpoint.id,dueAt,graceMinutes:15
+  });
+  assert.equal(cancellable.status,201);
+  const cancelledId=cancellable.payload.plan.id;
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminB,"PATCH",{id:cancelledId,action:"cancel"})).status,404,"cross-tenant cancellation forbidden");
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminA,"PATCH",{id:cancelledId,action:"cancel"})).status,200,"future patrol cancellation works");
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminA,"PATCH",{id:cancelledId,action:"cancel"})).status,404,"double cancellation forbidden");
 
   // Exercise real clock-in and clock-out, then verify isolated time records.
   const loc={latitude:45.5,longitude:-73.6,accuracy:12};
@@ -166,6 +201,18 @@ async function main() {
   const visit=await invoke("/api/agent/patrol",agentA,"POST",{code});
   assert.equal(visit.status,201,JSON.stringify(visit.payload));
   assert.equal(visit.payload.visit.label,"Entrée principale");
+  const confirmed=await invoke("/api/supervision/patrol/schedule",adminA);
+  const first=confirmed.payload.plans.find(p=>p.id===planId);
+  assert.ok(first,JSON.stringify(confirmed.payload));
+  assert.equal(first.display_status,"completed","same-tenant scheduled checkpoint is satisfied by valid scan");
+  assert.equal((await invoke("/api/agent/patrol/schedule",agentA)).payload.plans.find(p=>p.id===planId)?.display_status,"completed");
+  assert.equal(confirmed.payload.plans.find(p=>p.id===cancelledId)?.display_status,"cancelled");
+  // In the disposable integration database only, simulate elapsed time so no real waits are required.
+  await pool.query("UPDATE gs_patrol_schedule SET due_at=now()-interval '30 minutes' WHERE id=$1",[missingPlan.payload.plan.id]);
+  const overdue=await invoke("/api/supervision/patrol/schedule",adminA);
+  assert.equal(overdue.payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue","missing checkpoint must be flagged after grace period");
+  assert.equal((await invoke("/api/agent/patrol/schedule",agentA)).payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue");
+
   assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,409,"one visit per checkpoint per shift");
   assert.equal((await invoke("/api/agent/patrol",agentB)).payload.visits.length,0,"other tenant's agent cannot see visit");
   assert.equal((await invoke("/api/supervision/patrol",adminB)).payload.visits.length,0,"other tenant supervisor cannot see visits");
