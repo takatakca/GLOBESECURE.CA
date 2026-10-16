@@ -33,3 +33,5 @@ Le chantier reprenable immédiatement est la planification des rondes, les alert
 - **À vérifier après dernier commit :** CSV de supervision avec garde tenant, filtre format et protection contre les formules; dernier run GitHub Actions.
 - **À réaliser :** vrais envois d'alertes aux superviseurs, répétition d'un point dans un même quart, notifications aux agents, qualification de présence physique, politique de conservation et audit sur environnement réel.
 - **Bloqué côté hébergement :** sauvegarde/source MochaHost, staging Node 22 HTTPS + PostgreSQL, TAKATAK Auth OIDC et secrets, approbation vie privée/contrôles métier, release puis rollback vérifiés. Ne pas modifier la production avant ces étapes.
+
+- **15 octobre 2026 :** rafraîchissement visible toutes les 60 s ajouté dans les portails (sans notification courriel/SMS ni tâche de fond). Voir les dernières Actions avant déploiement.

@@ -2,7 +2,7 @@
 
 **Mise à jour :** 15 octobre 2026, 23 h (heure de Montréal).
 **Dépôt :** `takatakca/GLOBESECURE.CA` — branche `main`.
-**Dernier commit technique avant cette relève :** `f1b86824cda38977c1b8497cc13b0dcce58da798`. Un nouveau SHA est créé par le présent commit documentaire : lire GitHub HEAD au prochain lancement.
+**Dernier commit technique avant cette relève :** `e7119793328dd068c498056ce7048e75619c104a`. Un nouveau SHA est créé par le présent commit documentaire : lire GitHub HEAD au prochain lancement.
 
 ## Dernière tâche terminée — rondes planifiées et signalement des contrôles manquants
 
@@ -13,7 +13,7 @@ Suite de la gestion des sites, agents et QR de sécurité déjà existante :
 - API agent `/api/agent/patrol/schedule` : chaque agent voit exclusivement les passages attendus de ses affectations, sans liste de tous les sites ou agents.
 - Interfaces `PatrolScheduleManager.jsx` et `AgentPatrolSchedule.jsx` : planification, état des passages, compte des contrôles en retard, actualisation manuelle et export.
 - Le passage n'est réputé confirmé que si le point, l'agent authentifié, la fenêtre d'échéance et l'affectation correspondent à un véritable scan enregistré. Une affectation annulée ou un point/site désactivé ne crée pas une fausse alerte de retard.
-- **Les alertes sont seulement affichées dans l'application et le CSV**. Aucun SMS, courriel, push ou ordonnanceur distant n'est connecté ; ne pas présenter un affichage de retard comme une notification envoyée.
+- **Les tableaux de bord actualisent automatiquement les échéances toutes les 60 secondes lorsque l'onglet reste visible**, et les alertes sont seulement affichées dans l'application et le CSV. Aucun SMS, courriel, push ou ordonnanceur distant n'est connecté ; ne pas présenter un affichage de retard comme une notification envoyée.
 - Le modèle actuel limite un contrôle attendu à chaque `(affectation,point)` et un scan à chaque `(quart,point)`. Les rondes répétées au même point durant un même quart nécessiteront une évolution coordonnée du schéma et des règles d'anti-rejeu.
 
 ## Vérifications
@@ -51,3 +51,7 @@ Autres chantiers non clos : alertes proactives (email/SMS/push conditionnées au
 3. Lorsque l'infrastructure réelle est accessible : sauvegarder MochaHost, configurer staging isolé et sa base, y appliquer les migrations 001–011 avec les garde-fous, connecter TAKATAK Auth et contrôler le SHA renvoyé par `/api/health` sur l'URL effective avant toute bascule.
 
 **Le dépôt conserve le travail, mais une session ChatGPT ne redémarre pas automatiquement sans orchestrateur autorisé.**
+
+## Correctif de rafraîchissement (15 octobre 2026)
+
+Le commit technique `e7119793328dd068c498056ce7048e75619c104a` fait actualiser les contrôles agent et superviseur à chaque minute lorsque l'onglet est visible. Les erreurs réseau sont affichées dans l'interface; aucun service d'envoi de notification externe n'est supposé actif. Vérifier le dernier pipeline après la publication de cette relève.
