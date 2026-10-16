@@ -23,6 +23,10 @@ test("schedule statuses distinguish due, overdue, completed and cancelled",()=>{
   assert.equal(patrolDueStatus(base,Date.parse("2026-10-15T14:16:00Z")),"overdue");
   assert.equal(patrolDueStatus({...base,visit_at:"2026-10-15T14:02:00Z"},now),"completed");
   assert.equal(patrolDueStatus({...base,status:"cancelled"}),"cancelled");
+  assert.equal(patrolDueStatus({...base,assignment_status:"cancelled"}),"cancelled");
+  assert.equal(patrolDueStatus({...base,checkpoint_active:false},Date.parse("2026-10-15T14:30:00Z")),"suspended");
+  assert.equal(patrolDueStatus({...base,site_active:false},Date.parse("2026-10-15T14:30:00Z")),"suspended");
+  assert.equal(patrolDueStatus({...base,visit_at:"2026-10-15T14:02:00Z",checkpoint_active:false}),"completed");
 });
 test("cancellation rejects unexpected actions and IDs",()=>{
   assert.deepEqual(parsePatrolCancellation({id:assignmentId,action:"cancel"}),{id:assignmentId});

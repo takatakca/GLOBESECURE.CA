@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-const status={upcoming:"À venir",due:"À effectuer",overdue:"EN RETARD",completed:"Passage enregistré"};
+const status={upcoming:"À venir",due:"À effectuer",overdue:"EN RETARD",completed:"Passage enregistré",suspended:"Suspendue"};
 const format=value=>new Date(value).toLocaleString("fr-CA",{dateStyle:"medium",timeStyle:"short"});
 export default function AgentPatrolSchedule(){
   const [plans,setPlans]=useState([]);

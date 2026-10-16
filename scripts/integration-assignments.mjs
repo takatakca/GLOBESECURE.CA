@@ -212,6 +212,11 @@ async function main() {
   const overdue=await invoke("/api/supervision/patrol/schedule",adminA);
   assert.equal(overdue.payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue","missing checkpoint must be flagged after grace period");
   assert.equal((await invoke("/api/agent/patrol/schedule",agentA)).payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue");
+  assert.equal((await invoke("/api/supervision/patrol",adminA,"PATCH",{id:missingPoint.payload.checkpoint.id,active:false})).status,200);
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminA)).payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"suspended","inactive checkpoint must not trigger false overdue alert");
+  assert.equal((await invoke("/api/supervision/patrol",adminA,"PATCH",{id:missingPoint.payload.checkpoint.id,active:true})).status,200);
+  assert.equal((await invoke("/api/supervision/patrol/schedule",adminA)).payload.plans.find(p=>p.id===missingPlan.payload.plan.id)?.display_status,"overdue");
+
 
   assert.equal((await invoke("/api/agent/patrol",agentA,"POST",{code})).status,409,"one visit per checkpoint per shift");
   assert.equal((await invoke("/api/agent/patrol",agentB)).payload.visits.length,0,"other tenant's agent cannot see visit");

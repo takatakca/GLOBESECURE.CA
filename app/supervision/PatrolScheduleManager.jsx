@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-const labels={upcoming:"À venir",due:"À effectuer",overdue:"EN RETARD",completed:"Passage confirmé",cancelled:"Annulée"};
+const labels={upcoming:"À venir",due:"À effectuer",overdue:"EN RETARD",completed:"Passage confirmé",cancelled:"Annulée",suspended:"Suspendue"};
 const format=value=>new Date(value).toLocaleString("fr-CA",{dateStyle:"medium",timeStyle:"short"});
 export default function PatrolScheduleManager(){
   const [plans,setPlans]=useState([]);
