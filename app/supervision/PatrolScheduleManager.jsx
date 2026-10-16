@@ -84,6 +84,7 @@ export default function PatrolScheduleManager(){
       <label>Tolérance après échéance (min)<input name="graceMinutes" type="number" min="5" max="120" step="1" defaultValue="15" required /></label>
       <button type="submit" className="button button-primary" disabled={busy||!eligible.length}>{busy?"Enregistrement…":"Programmer le contrôle ↗"}</button>
       <button type="button" className="button button-outline" disabled={busy} onClick={async()=>{setBusy(true);setError("");try{await refresh();setFeedback("États des contrôles actualisés.");}catch(e){setError(e.message);}finally{setBusy(false);}}}>Actualiser les états</button>
+      <a className="button button-outline" href="/api/supervision/patrol/schedule?format=csv">Exporter les contrôles (CSV)</a>
     </form>
     {error&&<p role="alert" className="form-error">{error}</p>}
     {feedback&&<p role="status" className="shift-message">{feedback}</p>}

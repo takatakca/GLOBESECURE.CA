@@ -3,7 +3,7 @@ import {getSession} from "../../../../../lib/auth";
 import {database} from "../../../../../lib/db";
 import {requestIsSameSite} from "../../../../../lib/origin.mjs";
 import {readJsonBody,bodyFailure} from "../../../../../lib/read-json.mjs";
-import {parsePatrolSchedule,parsePatrolCancellation,patrolDueStatus,patrolScheduleFrom,patrolScheduleSelect} from "../../../../../lib/patrol-schedule.mjs";
+import {parsePatrolSchedule,parsePatrolCancellation,patrolDueStatus,patrolScheduleFrom,patrolScheduleSelect,exportPatrolReport} from "../../../../../lib/patrol-schedule.mjs";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 async function access(){
@@ -13,9 +13,11 @@ async function access(){
   if(!pool)return {error:NextResponse.json({error:"Base de données non configurée."},{status:503})};
   return {session,pool};
 }
-export async function GET(){
+export async function GET(request){
   const ctx=await access();
   if(ctx.error)return ctx.error;
+  const format=new URL(request.url).searchParams.get("format")||"json";
+  if(!["json","csv"].includes(format))return NextResponse.json({error:"Format demandé invalide."},{status:400});
   try{
     const result=await ctx.pool.query(
       patrolScheduleSelect+patrolScheduleFrom+
@@ -23,7 +25,13 @@ export async function GET(){
       [ctx.session.tenant]);
     if(result.rowCount>200)return NextResponse.json({error:"Trop de rondes à afficher. Réduisez le nombre de planifications."},{status:422});
     const now=Date.now();
-    return NextResponse.json({plans:result.rows.map(p=>({...p,display_status:patrolDueStatus(p,now)})),checked_at:new Date(now).toISOString()},{headers:{"Cache-Control":"no-store"}});
+    const plans=result.rows.map(p=>({...p,display_status:patrolDueStatus(p,now)}));
+    if(format==="csv")return new Response(exportPatrolReport(plans),{headers:{
+      "Content-Type":"text/csv; charset=utf-8",
+      "Content-Disposition":'attachment; filename="globesecure-rondes-planifiees.csv"',
+      "Cache-Control":"no-store","X-Content-Type-Options":"nosniff"
+    }});
+    return NextResponse.json({plans,checked_at:new Date(now).toISOString()},{headers:{"Cache-Control":"no-store"}});
   }catch{return NextResponse.json({error:"Suivi des rondes indisponible."},{status:503});}
 }
 export async function POST(request){

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {parsePatrolSchedule,parsePatrolCancellation,patrolDueStatus} from "../lib/patrol-schedule.mjs";
+import {parsePatrolSchedule,parsePatrolCancellation,patrolDueStatus,exportPatrolReport} from "../lib/patrol-schedule.mjs";
 const now=Date.parse("2026-10-15T12:00:00Z");
 const assignmentId="123e4567-e89b-42d3-a456-426614174000";
 const checkpointId="123e4567-e89b-42d3-a456-426614174001";
@@ -32,4 +32,13 @@ test("cancellation rejects unexpected actions and IDs",()=>{
   assert.deepEqual(parsePatrolCancellation({id:assignmentId,action:"cancel"}),{id:assignmentId});
   assert.equal(parsePatrolCancellation({id:"/other",action:"cancel"}),null);
   assert.equal(parsePatrolCancellation({id:assignmentId,action:"delete"}),null);
+});
+
+test("CSV report escapes formula injection, quotes and contains explicit current state",()=>{
+  const csv=exportPatrolReport([{site_name:"=HYPERLINK(1)",checkpoint_label:'Porte "A"',assignment_title:"Ronde",agent_sub:"agent-x",due_at:new Date(now),grace_minutes:15,display_status:"overdue",visit_at:null}]);
+  assert.ok(csv.startsWith("\uFEFF"));
+  assert.ok(csv.includes('"\'=HYPERLINK(1)"'));
+  assert.ok(csv.includes('"Porte ""A"""'));
+  assert.ok(csv.includes('"overdue"'));
+  assert.ok(!csv.includes("undefined"));
 });
